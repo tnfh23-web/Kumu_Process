@@ -1,162 +1,131 @@
-/* Kumu process: independent entry sequences, research chart, and brand media.
-   References and verified behavior are documented in design/motion-plan.md. */
+/* Complete components fade in reading order. Only the survey pie fills. */
 (() => {
   'use strict';
-  const $ = selector => document.querySelector(selector);
-  const $$ = selector => [...document.querySelectorAll(selector)];
-  const node = id => $(`[data-node-id="379:${id}"]`);
-  const main = $('.process-canvas');
-  const motion = {state:'preparing', groups:[], smoother:null, entries:[], errors:[]};
-  window.kumuMotion = motion;
-  if(new URLSearchParams(location.search).has('capture')) {
-    main.dataset.motion='static-capture';motion.state='static-capture';return;
+  const root=document.documentElement;
+  const main=document.querySelector('main');
+  const all=selector=>[...main.querySelectorAll(selector)];
+  const motion={state:'preparing',groups:[],smoother:null,errors:[]};
+  const inlineOpacities=new Map();
+  window.kumuMotion=motion;
+  const capture=new URLSearchParams(location.search).has('capture');
+  if(capture){root.classList.remove('motion-preparing');main.dataset.motion='static-capture';motion.state='static-capture';return;}
+  function restoreOpacity(unit){
+    if(!inlineOpacities.has(unit))return;
+    const value=inlineOpacities.get(unit);
+    if(value)unit.style.opacity=value;else unit.style.removeProperty('opacity');
   }
-  if (!window.gsap || !window.ScrollTrigger || !window.ScrollSmoother) {
-    main.dataset.motion = 'native-fallback';
-    motion.state = 'native-fallback';
-    return;
-  }
-  const {gsap, ScrollTrigger, ScrollSmoother} = window;
-  let context;
-  function finishAll() {
-    motion.groups.forEach(group => { group.timeline.progress(1); group.trigger?.kill(); });
-    $$('[data-motion-state]').forEach(el => {el.style.opacity='';el.style.visibility='';el.dataset.motionState='entered';});
-  }
-  function recover(error) {
-    motion.errors.push(String(error));
-    context?.revert();
+  function fallback(error){
+    root.classList.remove('motion-preparing');
+    motion.groups.forEach(group=>{group.timeline.progress(1);group.trigger?.kill();});
+    all('[data-entry]').forEach(unit=>{restoreOpacity(unit);unit.dataset.motionState='entered';});
+    all('.research-pie').forEach(figure=>{
+      figure.querySelector('.pie-sector').setAttribute('d',sectorPath(82));
+      figure.querySelector('.pie-number').textContent='82%';
+      figure.querySelector('figcaption').style.removeProperty('opacity');
+    });
     motion.smoother?.kill();
-    finishAll();
-    main.dataset.motion='native-fallback';
-    motion.state='native-fallback';
-    console.error('Kumu motion initialization:',error);
+    main.dataset.motion='native-fallback';motion.state='native-fallback';
+    if(error){motion.errors.push(String(error));console.error('Kumu motion:',error);}
   }
-  function prepareCandidates() {
-    const candidates = new Set($$('[data-copy],[data-reveal]'));
-    $$('[data-name^="image_"],[data-name^="Strategy Card "],[data-node-id]').forEach(el => {
-      const style=getComputedStyle(el);
-      if(style.display==='contents' || el.matches('section,[data-copy]')) return;
-      const r=el.getBoundingClientRect();
-      const scale=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--canvas-scale'));
-      const w=r.width/scale,h=r.height/scale;
-      const media=el.dataset.name?.startsWith('image_');
-      const vector=style.display==='flex' && el.querySelector('img') && !el.querySelector('[data-copy]');
-      if((media && w>80 && h>65) || (vector && w>8 && h>8 && w*h<1800000) || el.dataset.name?.startsWith('Strategy Card ')) candidates.add(el);
-    });
-    return [...candidates].filter(el => {
-      if(getComputedStyle(el).display==='contents') return false;
-      let parent=el.parentElement;
-      while(parent && parent!==main) {
-        if(candidates.has(parent) && getComputedStyle(parent).display!=='contents') return false;
-        parent=parent.parentElement;
-      }
-      return el.getBoundingClientRect().width>0;
-    });
-  }
-  const chartIds=new Set(['304','305','307','317','318','322','323','327','328','332','333']);
-  function chart() {
-    const elements=[304,305,307,317,318,322,323,327,328,332,333].map(node).filter(Boolean);
-    const tl=gsap.timeline({paused:true,onStart(){elements.forEach(el=>el.dataset.motionState='entering');},onComplete(){elements.forEach(el=>el.dataset.motionState='entered');}});
-    gsap.set(elements,{autoAlpha:0});
-    tl.fromTo([node(304),node(305)],{scale:.65,autoAlpha:0},{scale:1,autoAlpha:1,duration:1.05,ease:'power3.out',stagger:.12},0);
-    [[317,318,37],[322,323,28],[327,328,21],[332,333,14]].forEach(([barId,countId,value],i)=>{
-      const bar=node(barId), label=node(countId), number={value:0};
-      if(!bar||!label) return;
-      label.setAttribute('aria-label',value+'%');
-      label.classList.add('chart-count');
-      label.textContent='0%';
-      tl.fromTo(bar,{scaleX:0,autoAlpha:1},{scaleX:1,duration:.95,transformOrigin:'left center',ease:'power3.out'},.3+i*.16);
-      tl.to(label,{autoAlpha:1,duration:.25},.4+i*.16);
-      tl.to(number,{value,duration:1.15,ease:'power2.out',onUpdate(){label.textContent=Math.round(number.value)+'%';}},.4+i*.16);
-    });
-    const count=node(307),percent={value:0};
-    count.setAttribute('aria-label','82%');count.textContent='0%';
-    tl.to(count,{autoAlpha:1,duration:.3},.35);
-    tl.to(percent,{value:82,duration:1.6,ease:'power2.out',onUpdate(){count.textContent=Math.round(percent.value)+'%';}},.35);
-    const trigger=ScrollTrigger.create({trigger:node(302),start:'top 78%',animation:tl,toggleActions:'play none none none',once:true});
-    motion.groups.push({name:'research-chart',timeline:tl,trigger,elements});
-  }
-  function setupEntries(candidates) {
-    const height=window.innerHeight;
-    const sorted=candidates.map(el=>({el,rect:el.getBoundingClientRect()})).sort((a,b)=>a.rect.top-b.rect.top || a.rect.left-b.rect.left);
-    const groups=[];
-    sorted.forEach(item=>{
-      const id=item.el.dataset.nodeId?.split(':')[1];
-      if(chartIds.has(id)) return;
-      const section=item.el.closest('section');
-      let group=groups.at(-1);
-      if(!group || group.section!==section || item.rect.top-group.top>Math.min(240,height*.32)) {
-        group={section,top:item.rect.top,items:[]};groups.push(group);
-      }
-      group.items.push(item.el);
-    });
-    groups.forEach((group,groupIndex)=>{
-      const tl=gsap.timeline({paused:true,onStart(){group.items.forEach(el=>el.dataset.motionState='entering');},onComplete(){group.items.forEach(el=>{el.dataset.motionState='entered';el.style.willChange='auto';});}});
-      group.items.forEach((el,index)=>{
-        const originalOpacity=parseFloat(getComputedStyle(el).opacity)||1;
-        const media=el.querySelector('img') || el.tagName==='IMG';
-        const kind=el.dataset.reveal;
-        const card=el.classList.contains('problem-card') || el.dataset.name?.startsWith('Strategy Card ');
-        const delay=Math.min(index*.14,.8)+(parseFloat(el.dataset.delay)||0);
-        el.dataset.motionState='idle';el.classList.add('motion-layer');
-        const from={autoAlpha:0,y:media?70:32};
-        const to={autoAlpha:originalOpacity,y:0,duration:media?1.05:.8,ease:'power3.out'};
-        if(card) {from.y=85;from.rotationX=6;to.rotationX=0;to.duration=1.1;}
-        if(kind==='note') {from.x=el.classList.contains('left')?-35:35;from.y=0;to.x=0;}
-        if(kind==='chevron') {from.y=-16;to.duration=.5;}
-        // Image windows and labels use a reveal of their own; body copy remains readable.
-        if(media && !card && el.getBoundingClientRect().height<window.innerHeight*1.1) {
-          from.clipPath='inset(12% 0% 0% 0%)';to.clipPath='inset(0% 0% 0% 0%)';
-        }
-        tl.fromTo(el,from,to,delay);
+  if(!window.gsap||!window.ScrollTrigger||!window.ScrollSmoother){fallback();return;}
+  const {gsap,ScrollTrigger,ScrollSmoother}=window;
+  let context;
+  let disposed=false;
+  const maskCache=new Map();
+  function mediaReady(units){
+    const images=new Set();const masks=new Set();
+    units.forEach(unit=>{
+      if(unit.tagName==='IMG')images.add(unit);
+      unit.querySelectorAll('img').forEach(image=>images.add(image));
+      [unit,...unit.querySelectorAll('[style*="mask-image"]')].forEach(element=>{
+        for(const match of getComputedStyle(element).maskImage.matchAll(/url\(["']?([^"')]+)["']?\)/g))masks.add(match[1]);
       });
-      const name=group.section.id+'-'+groupIndex;
-      const g={name,timeline:tl,elements:group.items,trigger:null};
-      motion.groups.push(g);
-      if(group.top<height*.91) tl.play();
-      else g.trigger=ScrollTrigger.create({trigger:group.items[0],start:'top 88%',animation:tl,toggleActions:'play none none none',once:true});
+    });
+    const promises=[...images].map(image=>image.decode());
+    masks.forEach(url=>{
+      if(!maskCache.has(url)){
+        const image=new Image();image.src=url;
+        maskCache.set(url,image.decode().catch(()=>{}));
+      }
+      promises.push(maskCache.get(url));
+    });
+    return Promise.allSettled(promises);
+  }
+  function sectorPath(percent){
+    if(percent<=0)return 'M 140 140 L 140 0 Z';
+    const angle=Math.PI*2*percent/100;
+    const x=140+Math.sin(angle)*140;
+    const y=140-Math.cos(angle)*140;
+    return `M 140 140 L 140 0 A 140 140 0 ${percent>50?1:0} 1 ${x.toFixed(6)} ${y.toFixed(6)} Z`;
+  }
+  function addPie(timeline,figure,at){
+    const path=figure.querySelector('.pie-sector');
+    const number=figure.querySelector('.pie-number');
+    const caption=figure.querySelector('figcaption');
+    const progress={value:0};
+    function draw(){
+      path.setAttribute('d',sectorPath(progress.value));
+      number.textContent=Math.round(progress.value)+'%';
+      figure.dataset.pieProgress=progress.value.toFixed(3);
+    }
+    draw();gsap.set(caption,{opacity:0});
+    timeline.to(progress,{value:82,duration:1.45,ease:'power1.out',onUpdate:draw,onComplete(){progress.value=82;draw();}},at+.12);
+    timeline.to(caption,{opacity:1,duration:.35,ease:'none'},at+.55);
+  }
+  function setupEntries(){
+    const batches=new Map();
+    all('[data-entry]').forEach(unit=>{
+      const key=unit.dataset.entryBatch||unit.dataset.entry;
+      if(!batches.has(key))batches.set(key,[]);
+      batches.get(key).push(unit);
+    });
+    batches.forEach((units,name)=>{
+      units.sort((a,b)=>Number(a.dataset.entryOrder)-Number(b.dataset.entryOrder));
+      const anchor=units[0].querySelector(':scope > .entry-anchor')||units[0];
+      const timeline=gsap.timeline({paused:true});
+      units.forEach((unit,index)=>{
+        inlineOpacities.set(unit,unit.style.opacity);
+        const opacity=parseFloat(getComputedStyle(unit).opacity);
+        const targetOpacity=Number.isFinite(opacity)?opacity:1;
+        const delay=index*(name==='hero-opening'?.11:.16);
+        unit.dataset.motionState='idle';
+        gsap.set(unit,{opacity:0});
+        timeline.to(unit,{
+          opacity:targetOpacity,duration:.65,ease:'power1.out',
+          onStart(){unit.dataset.motionState='entering';},
+          onComplete(){unit.dataset.motionState='entered';restoreOpacity(unit);}
+        },delay);
+        if(unit.matches('.research-pie'))addPie(timeline,unit,delay);
+      });
+      const group={name,timeline,units,trigger:null,ready:false,requested:false};motion.groups.push(group);
+      const play=()=>{group.requested=true;if(group.ready&&!disposed&&motion.state!=='native-fallback')timeline.play();};
+      mediaReady(units).then(()=>{group.ready=true;if(group.requested&&!disposed&&motion.state!=='native-fallback')timeline.play();});
+      if(anchor.getBoundingClientRect().top<window.innerHeight*.88)play();
+      else group.trigger=ScrollTrigger.create({trigger:anchor,start:'top 88%',onEnter:play,once:true});
     });
   }
-  function hover() {
-    $$('[data-name^="Strategy Card "]').forEach(el=>{
-      const target=el.querySelector('[data-copy]');
-      if(!target) return;
-      el.addEventListener('pointerenter',()=>gsap.to(target,{y:-12,rotation:-2,duration:.45,ease:'power3.out',overwrite:'auto'}));
-      el.addEventListener('pointerleave',()=>gsap.to(target,{y:0,rotation:0,duration:.55,ease:'power3.out',overwrite:'auto'}));
-    });
-    // Color samples keep their original geometry and respond as a staggered material strip.
-    const swatches=$$('.identity-sec [data-copy]').filter(el=>/^#[0-9a-f]{6}$/i.test(el.textContent.trim()));
-    swatches.forEach(el=>{
-      el.addEventListener('pointerenter',()=>gsap.to(el,{y:-6,duration:.25,overwrite:'auto'}));
-      el.addEventListener('pointerleave',()=>gsap.to(el,{y:0,duration:.3,overwrite:'auto'}));
-    });
+  function revealTarget(target){
+    const section=target.closest('section');
+    motion.groups.filter(group=>!section||group.units.some(unit=>section.contains(unit))).forEach(group=>group.timeline.progress(1));
   }
-  async function init() {
-    try {
+  async function init(){
+    try{
       await document.fonts.ready;
-      await Promise.allSettled($$('.hero-sec img').map(img=>img.decode()));
+      await Promise.allSettled(all('.hero-sec img').map(image=>image.decode()));
+      if(window.kumuPreparationExpired){fallback();return;}
+      // Remove the bootstrap class and set timeline starts within the same task.
+      root.classList.remove('motion-preparing');
       gsap.registerPlugin(ScrollTrigger,ScrollSmoother);
       ScrollTrigger.config({ignoreMobileResize:true});
-      motion.smoother=ScrollSmoother.get() || ScrollSmoother.create({wrapper:'#smooth-wrapper',content:'#smooth-content',smooth:1.05,smoothTouch:.1,effects:false});
-      context=gsap.context(()=>{setupEntries(prepareCandidates());chart();hover();},main);
-      document.documentElement.classList.add('js-ready');
-      main.dataset.motion='ready';motion.state='ready';
+      motion.smoother=ScrollSmoother.get()||ScrollSmoother.create({wrapper:'#smooth-wrapper',content:'#smooth-content',smooth:1.05,smoothTouch:.1,effects:false});
+      context=gsap.context(setupEntries,main);
+      root.classList.add('js-ready');main.dataset.motion='ready';motion.state='ready';
       ScrollTrigger.refresh();
-      window.addEventListener('load',()=>ScrollTrigger.refresh(),{once:true});
-      if(location.hash) {
-        const target=$(location.hash);
-        if(target) {finishAll();motion.smoother.scrollTo(target,false,'top top');}
-      }
-    } catch(error) {recover(error);}
+      if(document.readyState!=='complete')window.addEventListener('load',()=>ScrollTrigger.refresh(),{once:true});
+      if(location.hash){const target=document.querySelector(location.hash);if(target){revealTarget(target);motion.smoother.scrollTo(target,false,'top top');}}
+    }catch(error){context?.revert();fallback(error);}
   }
-  document.addEventListener('kumu:reveal-target',event=>{
-    const target=event.detail;
-    const section=target.closest('section');
-    motion.groups.filter(group=>!section || group.elements.some(el=>section.contains(el))).forEach(group=>group.timeline.progress(1));
-  });
-  window.addEventListener('pagehide',event=>{
-    if(event.persisted) return;
-    context?.revert();motion.smoother?.kill();
-  });
+  document.addEventListener('kumu:reveal-target',event=>revealTarget(event.detail));
+  window.addEventListener('pagehide',event=>{if(!event.persisted){disposed=true;context?.revert();motion.smoother?.kill();}});
   init();
 })();

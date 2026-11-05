@@ -8,7 +8,7 @@ for(const match of html.matchAll(/(?:src|href)=["'](\.\/[^"']+)["']/g)) referenc
 for(const match of html.matchAll(/url\((?:&quot;|["'])(\.\/[^"']+?)(?:&quot;|["'])\)/g)) references.add(match[1]);
 const failures=[];
 for(const ref of references){
-  try{const s=await stat(path.join(root,ref));if(!s.size)failures.push('empty '+ref);}
+  try{const s=await stat(path.join(root,ref.split(/[?#]/)[0]));if(!s.size)failures.push('empty '+ref);}
   catch{failures.push('missing '+ref);}
 }
 if(/https:\/\/www\.figma\.com\/api\/mcp\/asset/.test(html))failures.push('temporary Figma asset URL in runtime');

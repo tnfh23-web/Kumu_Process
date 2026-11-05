@@ -26,7 +26,16 @@ body{overflow-x:hidden}
 .note-connector::after{content:'';position:absolute;right:-4px;bottom:-7px;width:10px;height:10px;background:#ad7252;border-radius:50%}
 .left .note-connector{left:auto;right:-45px;transform:scaleX(-1)}
 .screen-note p{font-size:16px;line-height:27px}
-.motion-layer[data-motion-state='entering']{will-change:transform,opacity}
 .strategy-sec [data-name^='Strategy Card ']{box-shadow:0 5px 14px #442e2020;overflow:hidden}
-.chart-count{font-variant-numeric:tabular-nums}
 .js-ready .back-top.is-visible{opacity:1;visibility:visible}
+/* Each unit owns an entire graphic, including its outlines, fills and labels. */
+.entry-unit{position:absolute;inset:0;pointer-events:none}
+.entry-unit>.entry-content{pointer-events:auto}
+.entry-anchor{position:absolute;left:0;width:1px;height:1px;pointer-events:none;opacity:0}
+.motion-preparing [data-entry]{opacity:0}
+[data-entry][data-motion-state='entering']{will-change:opacity}
+.research-pie{position:absolute;left:363px;top:641px;width:280px;height:280px;overflow:hidden;border-radius:50%;margin:0;background:#fdf8f1}
+.research-pie svg{display:block;width:280px;height:280px}
+.research-pie figcaption{position:absolute;inset:0;color:#fdfaf7;text-align:center;pointer-events:none}
+.pie-label{position:absolute;top:162px;left:0;right:0;font-size:20px;line-height:26px;font-weight:500}
+.pie-number{position:absolute;top:194px;left:0;right:0;font-size:30px;line-height:38px;font-weight:600;font-variant-numeric:tabular-nums}
