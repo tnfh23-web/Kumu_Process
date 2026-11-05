@@ -8,4 +8,4 @@
 - 코드맵 검사: `node C:\work(pf)\skills-hooks\.agents\skills\code-map\scripts\check-code-map.mjs --root .` (PowerShell에서는 경로를 작은따옴표로 감싼다.)
 - 원본·캡처·다운로드 중간 파일은 `work/`, `qa/`에 보관한다. 개인정보·인증 정보·임시 Figma URL을 커밋하지 않는다.
 
-- 로고·툴·팔레트는 완성된 구성 단위의 순차 페이드인만 사용한다. 내부 벡터·테두리·색·글자를 따로 움직이거나 mask/clip/scale로 채우지 않는다. 원그래프의 시계 방향 0→82% 채움만 예외다.
+- 로고·툴·팔레트는 완성된 구성 단위의 순차 페이드인만 사용한다. 내부 벡터·테두리·색·글자를 따로 움직이거나 mask/clip/scale로 채우지 않는다. 원그래프의 시계 방향 0→82% 채움만 예외다. 다른 콘텐츠는 잇고의 fade(scrub 1), fadeUp(y 100), popin(.75→1.04→1), 좌우 slide를 구성 전체에 적용하며, 스크롤을 되돌리면 복귀한다.

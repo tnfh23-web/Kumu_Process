@@ -1,131 +1,96 @@
-/* Complete components fade in reading order. Only the survey pie fills. */
+/* Eatgo's motion families, applied to complete Kumu components. */
 (() => {
   'use strict';
-  const root=document.documentElement;
-  const main=document.querySelector('main');
-  const all=selector=>[...main.querySelectorAll(selector)];
-  const motion={state:'preparing',groups:[],smoother:null,errors:[]};
-  const inlineOpacities=new Map();
+  const root=document.documentElement, main=document.querySelector('main');
+  const units=[...main.querySelectorAll('[data-entry]')];
+  const motion={state:'preparing',groups:[],smoother:null};
   window.kumuMotion=motion;
-  const capture=new URLSearchParams(location.search).has('capture');
-  if(capture){root.classList.remove('motion-preparing');main.dataset.motion='static-capture';motion.state='static-capture';return;}
-  function restoreOpacity(unit){
-    if(!inlineOpacities.has(unit))return;
-    const value=inlineOpacities.get(unit);
-    if(value)unit.style.opacity=value;else unit.style.removeProperty('opacity');
+  if(new URLSearchParams(location.search).has('capture')){
+    document.querySelectorAll('img[loading=lazy]').forEach(e=>e.loading='eager');
+    root.classList.remove('motion-preparing');main.dataset.motion='static-capture';return;
+  }
+  const original=new Map(units.map(e=>[e,e.style.opacity]));
+  const scale=()=>parseFloat(root.style.getPropertyValue('--canvas-scale'))||1;
+  const position=e=>Number(e.dataset.motionTop)*scale();
+  const height=e=>Math.min(Number(e.dataset.motionHeight),650)*scale();
+  let context;
+  function visible(){
+    units.forEach(e=>{e.style.opacity=original.get(e);e.style.removeProperty('transform');e.dataset.motionState='entered';});
+    document.querySelector('.pie-sweep')?.setAttribute('stroke-dashoffset','0');
+    document.querySelector('.pie-number').textContent='82%';
+    document.querySelector('.research-pie figcaption').style.removeProperty('opacity');
   }
   function fallback(error){
-    root.classList.remove('motion-preparing');
-    motion.groups.forEach(group=>{group.timeline.progress(1);group.trigger?.kill();});
-    all('[data-entry]').forEach(unit=>{restoreOpacity(unit);unit.dataset.motionState='entered';});
-    all('.research-pie').forEach(figure=>{
-      figure.querySelector('.pie-sector').setAttribute('d',sectorPath(82));
-      figure.querySelector('.pie-number').textContent='82%';
-      figure.querySelector('figcaption').style.removeProperty('opacity');
-    });
-    motion.smoother?.kill();
-    main.dataset.motion='native-fallback';motion.state='native-fallback';
-    if(error){motion.errors.push(String(error));console.error('Kumu motion:',error);}
+    context?.revert();motion.smoother?.kill();visible();
+    root.classList.remove('motion-preparing');main.dataset.motion='native-fallback';
+    if(error)console.error('Kumu motion:',error);
   }
   if(!window.gsap||!window.ScrollTrigger||!window.ScrollSmoother){fallback();return;}
   const {gsap,ScrollTrigger,ScrollSmoother}=window;
-  let context;
-  let disposed=false;
-  const maskCache=new Map();
-  function mediaReady(units){
-    const images=new Set();const masks=new Set();
-    units.forEach(unit=>{
-      if(unit.tagName==='IMG')images.add(unit);
-      unit.querySelectorAll('img').forEach(image=>images.add(image));
-      [unit,...unit.querySelectorAll('[style*="mask-image"]')].forEach(element=>{
-        for(const match of getComputedStyle(element).maskImage.matchAll(/url\(["']?([^"')]+)["']?\)/g))masks.add(match[1]);
-      });
-    });
-    const promises=[...images].map(image=>image.decode());
-    masks.forEach(url=>{
-      if(!maskCache.has(url)){
-        const image=new Image();image.src=url;
-        maskCache.set(url,image.decode().catch(()=>{}));
-      }
-      promises.push(maskCache.get(url));
-    });
-    return Promise.allSettled(promises);
-  }
-  function sectorPath(percent){
-    if(percent<=0)return 'M 140 140 L 140 0 Z';
-    const angle=Math.PI*2*percent/100;
-    const x=140+Math.sin(angle)*140;
-    const y=140-Math.cos(angle)*140;
-    return `M 140 140 L 140 0 A 140 140 0 ${percent>50?1:0} 1 ${x.toFixed(6)} ${y.toFixed(6)} Z`;
-  }
-  function addPie(timeline,figure,at){
-    const path=figure.querySelector('.pie-sector');
-    const number=figure.querySelector('.pie-number');
-    const caption=figure.querySelector('figcaption');
-    const progress={value:0};
-    function draw(){
-      path.setAttribute('d',sectorPath(progress.value));
-      number.textContent=Math.round(progress.value)+'%';
-      figure.dataset.pieProgress=progress.value.toFixed(3);
-    }
-    draw();gsap.set(caption,{opacity:0});
-    timeline.to(progress,{value:82,duration:1.45,ease:'power1.out',onUpdate:draw,onComplete(){progress.value=82;draw();}},at+.12);
-    timeline.to(caption,{opacity:1,duration:.35,ease:'none'},at+.55);
-  }
-  function setupEntries(){
+  function entries(){
     const batches=new Map();
-    all('[data-entry]').forEach(unit=>{
-      const key=unit.dataset.entryBatch||unit.dataset.entry;
-      if(!batches.has(key))batches.set(key,[]);
-      batches.get(key).push(unit);
-    });
-    batches.forEach((units,name)=>{
-      units.sort((a,b)=>Number(a.dataset.entryOrder)-Number(b.dataset.entryOrder));
-      const anchor=units[0].querySelector(':scope > .entry-anchor')||units[0];
-      const timeline=gsap.timeline({paused:true});
-      units.forEach((unit,index)=>{
-        inlineOpacities.set(unit,unit.style.opacity);
-        const opacity=parseFloat(getComputedStyle(unit).opacity);
-        const targetOpacity=Number.isFinite(opacity)?opacity:1;
-        const delay=index*(name==='hero-opening'?.11:.16);
-        unit.dataset.motionState='idle';
-        gsap.set(unit,{opacity:0});
-        timeline.to(unit,{
-          opacity:targetOpacity,duration:.65,ease:'power1.out',
-          onStart(){unit.dataset.motionState='entering';},
-          onComplete(){unit.dataset.motionState='entered';restoreOpacity(unit);}
-        },delay);
-        if(unit.matches('.research-pie'))addPie(timeline,unit,delay);
+    units.forEach(e=>{const key=e.dataset.entryBatch||e.dataset.entry;if(!batches.has(key))batches.set(key,[]);batches.get(key).push(e);});
+    batches.forEach((elements,name)=>{
+      elements.sort((a,b)=>+a.dataset.entryOrder-+b.dataset.entryOrder);
+      elements.forEach((e,index)=>{
+        const effect=e.dataset.effect||'fade',hero=name==='hero-opening';
+        const plain=name.startsWith('palette-')||/identity-(primary-logo|logotype|brandmark|submark)|hero-(tools|wordmark)/.test(e.dataset.entry);
+        const scrub=!hero&&!plain&&effect!=='fadeUp';
+        const delay=index*(hero?.11:.2);
+        const opacity=parseFloat(original.get(e)||'1');
+        const tl=gsap.timeline({paused:true,onUpdate(){const p=tl.progress();e.dataset.motionState=p===1?'entered':p===0?'idle':'entering';}});
+        if(hero){
+          const y=e.dataset.entry==='hero-photo'?100:e.dataset.entry==='hero-project-title'?-100:0;
+          tl.fromTo(e,{opacity:0,y},{opacity,y:0,duration:1,ease:'power1.out'},delay);
+        }else if(effect==='popin'){
+          tl.fromTo(e,{scale:.75,opacity:0},{scale:1,opacity,duration:.6,ease:'none'},delay)
+            .to(e,{scale:1.04,duration:.5,ease:'none'}).to(e,{scale:1,duration:.5,ease:'none'});
+        }else{
+          const from={opacity:0},to={opacity,duration:.6,ease:effect==='fadeUp'?'power1.out':'none'};
+          if(effect==='fadeUp'){from.y=100;to.y=0;}
+          if(effect==='slideLeft'||effect==='slideRight'){from.xPercent=effect==='slideLeft'?-25:25;to.xPercent=0;}
+          tl.fromTo(e,from,to,delay);
+        }
+        let trigger=null;
+        if(hero)tl.play();
+        else{
+          // Recorded source coordinates avoid laying out every masked offscreen section.
+          const triggerElement=plain?elements[0]:e;
+          trigger=ScrollTrigger.create({animation:tl,start:()=>position(triggerElement)-innerHeight,
+            end:()=>position(triggerElement)+height(triggerElement)-innerHeight*.75,
+            scrub:scrub?1:false,toggleActions:'play none none reverse',invalidateOnRefresh:true});
+        }
+        motion.groups.push({name,units:[e],timeline:tl,trigger});
       });
-      const group={name,timeline,units,trigger:null,ready:false,requested:false};motion.groups.push(group);
-      const play=()=>{group.requested=true;if(group.ready&&!disposed&&motion.state!=='native-fallback')timeline.play();};
-      mediaReady(units).then(()=>{group.ready=true;if(group.requested&&!disposed&&motion.state!=='native-fallback')timeline.play();});
-      if(anchor.getBoundingClientRect().top<window.innerHeight*.88)play();
-      else group.trigger=ScrollTrigger.create({trigger:anchor,start:'top 88%',onEnter:play,once:true});
     });
-  }
-  function revealTarget(target){
-    const section=target.closest('section');
-    motion.groups.filter(group=>!section||group.units.some(unit=>section.contains(unit))).forEach(group=>group.timeline.progress(1));
+    const figure=document.querySelector('.research-pie'),sweep=figure.querySelector('.pie-sweep');
+    const question=document.querySelector('[data-entry="research-question-left"]');
+    const progress={value:0},caption=figure.querySelector('figcaption');
+    const draw=()=>{sweep.setAttribute('stroke-dashoffset',String(1-progress.value*.82));figure.dataset.pieProgress=(progress.value*82).toFixed(2);caption.style.opacity=Math.max(0,Math.min(1,(progress.value-.72)/.12));};
+    draw();
+    gsap.to(progress,{value:1,ease:'none',onUpdate:draw,scrollTrigger:{start:()=>position(question)-innerHeight*.5,end:()=>position(question)-innerHeight*.2,scrub:1}});
+    const count={value:0},number=figure.querySelector('.pie-number');
+    gsap.to(count,{value:82,duration:1.8,ease:'none',onUpdate(){number.textContent=Math.round(count.value)+'%';},scrollTrigger:{start:()=>position(question)-innerHeight*.5,toggleActions:'play none none reverse'}});
   }
   async function init(){
     try{
       await document.fonts.ready;
-      await Promise.allSettled(all('.hero-sec img').map(image=>image.decode()));
+      await Promise.allSettled([...document.querySelectorAll('.hero-sec img')].map(e=>e.decode()));
       if(window.kumuPreparationExpired){fallback();return;}
-      // Remove the bootstrap class and set timeline starts within the same task.
-      root.classList.remove('motion-preparing');
       gsap.registerPlugin(ScrollTrigger,ScrollSmoother);
       ScrollTrigger.config({ignoreMobileResize:true});
-      motion.smoother=ScrollSmoother.get()||ScrollSmoother.create({wrapper:'#smooth-wrapper',content:'#smooth-content',smooth:1.05,smoothTouch:.1,effects:false});
-      context=gsap.context(setupEntries,main);
+      motion.smoother=ScrollSmoother.get()||ScrollSmoother.create({wrapper:'#smooth-wrapper',content:'#smooth-content',smooth:.75,smoothTouch:0,effects:false});
+      root.classList.remove('motion-preparing');
+      context=gsap.context(entries,main);
       root.classList.add('js-ready');main.dataset.motion='ready';motion.state='ready';
       ScrollTrigger.refresh();
-      if(document.readyState!=='complete')window.addEventListener('load',()=>ScrollTrigger.refresh(),{once:true});
-      if(location.hash){const target=document.querySelector(location.hash);if(target){revealTarget(target);motion.smoother.scrollTo(target,false,'top top');}}
-    }catch(error){context?.revert();fallback(error);}
+      if(location.hash){const target=document.querySelector(location.hash);if(target)motion.smoother.scrollTo(target,false,'top top');}
+    }catch(error){fallback(error);}
   }
-  document.addEventListener('kumu:reveal-target',event=>revealTarget(event.detail));
-  window.addEventListener('pagehide',event=>{if(!event.persisted){disposed=true;context?.revert();motion.smoother?.kill();}});
+  document.addEventListener('kumu:reveal-target',event=>{
+    const section=event.detail.closest('section');
+    motion.groups.filter(g=>!section||g.units.some(e=>section.contains(e))).forEach(g=>g.timeline.progress(1));
+  });
+  window.addEventListener('pagehide',event=>{if(!event.persisted){context?.revert();motion.smoother?.kill();}});
   init();
 })();
