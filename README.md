@@ -4,7 +4,6 @@
 
 - 웹: https://tnfh23-web.github.io/Kumu_Process/
 - 기존 쿠무 서비스: https://tnfh23-web.github.io/kumu/
-- 디자인: https://www.figma.com/design/Rj5QW4oiiAkualsA6idxK2/?node-id=379-164
 
 ## 실행
 
