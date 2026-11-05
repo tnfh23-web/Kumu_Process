@@ -1,1 +1,4 @@
 @font-face{font-family:Pretendard;src:url('../assets/fonts/PretendardVariable.woff2') format('woff2');font-weight:45 920;font-style:normal;font-display:swap}
+
+/* Only the left type specimen uses Jalnan; site copy and the right specimen retain Pretendard. */
+.process-canvas [data-entry="identity-type-left"] [data-copy]{font-family:'Kumu Jalnan','여기어때 잘난체 2','Jalnan 2',Pretendard,sans-serif;font-weight:400}

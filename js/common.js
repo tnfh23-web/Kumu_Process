@@ -18,7 +18,7 @@
     event.preventDefault();
     document.dispatchEvent(new CustomEvent('kumu:reveal-target', {detail: target}));
     const lenis = window.kumuLenis;
-    if (lenis) lenis.scrollTo(target.offsetTop * parseFloat(root.style.getPropertyValue('--canvas-scale')));
+    if (lenis) lenis.scrollTo(Number(target.dataset.motionTop ?? target.offsetTop) * parseFloat(root.style.getPropertyValue('--canvas-scale')));
     else target.scrollIntoView({behavior:'smooth'});
     history.pushState(null, '', link.hash);
     target.setAttribute('tabindex', '-1');

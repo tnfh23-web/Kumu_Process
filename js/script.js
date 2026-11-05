@@ -5,9 +5,18 @@
   const units=[...main.querySelectorAll('[data-entry]')];
   const motion={state:'preparing',groups:[],lenis:null};
   window.kumuMotion=motion;
+  function loadTypeSpecimen(){
+    if(!window.FontFace)return;
+    const face=new FontFace('Kumu Jalnan',`local("Jalnan2"),local("여기어때 잘난체 2"),url("${new URL('assets/fonts/Jalnan2.otf',document.baseURI)}") format("opentype")`,{weight:'400',style:'normal'});
+    face.load().then(loaded=>{
+      document.fonts.add(loaded);
+      root.dataset.typeSpecimenFont='jalnan2';
+    }).catch(error=>{root.dataset.typeSpecimenFont='fallback';console.warn('Kumu type specimen font:',error);});
+  }
+
   if(new URLSearchParams(location.search).has('capture')){
     document.querySelectorAll('img[loading=lazy]').forEach(e=>e.loading='eager');
-    root.classList.remove('motion-preparing');main.dataset.motion='static-capture';return;
+    loadTypeSpecimen();root.classList.remove('motion-preparing');main.dataset.motion='static-capture';return;
   }
   const original=new Map(units.map(e=>[e,e.style.opacity]));
   const scale=()=>parseFloat(root.style.getPropertyValue('--canvas-scale'))||1;
@@ -23,7 +32,7 @@
   }
   function fallback(error){
     context?.revert();stopScroll();visible();
-    root.classList.remove('motion-preparing');main.dataset.motion='native-fallback';
+    root.classList.remove('motion-preparing');main.dataset.motion='native-fallback';loadTypeSpecimen();
     if(error)console.error('Kumu motion:',error);
   }
   if(!window.gsap||!window.ScrollTrigger||!window.Lenis){fallback();return;}
@@ -116,7 +125,8 @@
       context=gsap.context(entries,main);
       root.classList.add('js-ready');main.dataset.motion='ready';motion.state='ready';main.dataset.motionReadyMs=Math.round(performance.now());main.dataset.preparation=window.kumuPreparationExpired?'late-ready':'ready';
       ScrollTrigger.refresh();
-      if(location.hash){const target=document.querySelector(location.hash);if(target)motion.lenis.scrollTo(target.offsetTop*scale(),{immediate:true});}
+      loadTypeSpecimen();
+      if(location.hash){const target=document.querySelector(location.hash);if(target)motion.lenis.scrollTo(Number(target.dataset.motionTop??target.offsetTop)*scale(),{immediate:true});}
     }catch(error){fallback(error);}
   }
   document.addEventListener('kumu:reveal-target',event=>{
