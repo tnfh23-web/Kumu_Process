@@ -2,7 +2,7 @@
 
 사람과 반려견이 함께 머무는 카페 **쿠무**의 웹 브랜딩 제작 과정입니다. 기획·리서치·문제 정의부터 브랜딩, 디자인 시스템, 브랜드 목업, 사용자 흐름, 메인/서브 UI까지 한 페이지에 담았습니다.
 
-- 공개 시 웹 주소: https://tnfh23-web.github.io/Kumu_Process/
+- 웹: https://tnfh23-web.github.io/Kumu_Process/
 - 기존 쿠무 서비스: https://tnfh23-web.github.io/kumu/
 - 디자인: https://www.figma.com/design/Rj5QW4oiiAkualsA6idxK2/?node-id=379-164
 
@@ -36,4 +36,5 @@ GSAP 3.13.0, ScrollTrigger, ScrollSmoother로 첫 진입과 섹션별 순차 등
 - QA 캡처와 원본 파일은 로컬 `qa/`, `work/`에 보관하며 저장소에는 올리지 않습니다.
 
 서버·데이터베이스·로그인·외부 API 연결이 없는 정적 소개 페이지입니다.
+
 

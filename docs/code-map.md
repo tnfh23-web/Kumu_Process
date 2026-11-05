@@ -2,7 +2,7 @@
 
 먼저 `index.html`의 섹션 구성 → `css/common.css`의 공통 디자인 → `css/layout.css`의 Figma 좌표 → `js/script.js`의 모션 순서로 읽습니다.
 
-실행 진입점은 `index.html`입니다. 로컬에서 `node serve.mjs`로 확인합니다. 공개 배포 대상은 GitHub Pages의 `main` 브랜치 루트이며 현재 원격 연결 전입니다. 별도 빌드·서버 API·데이터베이스·인증·사용자 데이터 저장 기능은 없습니다.
+실행 진입점은 `index.html`입니다. 로컬에서 `node serve.mjs`로 확인합니다. 원격 저장소는 https://github.com/tnfh23-web/Kumu_Process 이며, GitHub Pages의 `main` 브랜치 루트를 배포 대상으로 사용합니다. 별도 빌드·서버 API·데이터베이스·인증·사용자 데이터 저장 기능은 없습니다.
 
 | 파일 | 역할 | 연결되는 파일·기능 | 수정할 때 |
 |---|---|---|---|
@@ -53,4 +53,5 @@
   }
 }
 <!-- code-map-review:end -->
+
 
