@@ -6,7 +6,7 @@
 
 | 파일 | 역할 | 연결되는 파일·기능 | 수정할 때 |
 |---|---|---|---|
-| `index.html` | 원본 순서의 12개 섹션, 102개 명시적 등장 구성, 직접 그린 SVG 파이와 접근성 링크 | 모든 CSS와 JS, assets | 문구·콘텐츠·이미지·섹션 구조 변경 |
+| `index.html` | 원본 순서의 12개 섹션, 102개 명시적 등장 구성, 직접 그린 SVG 파이, 접근성 링크와 빈 파비콘 지정 | 모든 CSS와 JS, assets | 문구·콘텐츠·이미지·섹션 구조 변경 |
 | `css/style.css` | CSS 파일을 순서대로 불러오는 진입점 | fonts → reset → common → layout → responsive | 스타일 구성 변경 |
 | `css/fonts.css` | 로컬 Pretendard Variable 로딩 | assets/fonts | 웹 글꼴 변경 |
 | `css/reset.css` | 기본 여백과 요소 규칙, 최소 PC 폭, 키보드 포커스 | 전체 화면 | 브라우저 기본 스타일 문제 수정 |
@@ -42,7 +42,7 @@
     "css/reset.css": "add29fe8aeccee71d2e08ef6bf3552e73c77067b83bee84f837b0785bc923556",
     "css/responsive.css": "4de371ea7e646bf817cdb3e80c0dee9090a9042c1a1f6e271038493d24766da2",
     "css/style.css": "281026611c5ba557effc26dbb8034d7245657890aa5227e247a733e671cc017d",
-    "index.html": "7ab13de1dbbae9417fec5221f69fdacc0f95ddc057f365f364e8c485d4125cc6",
+    "index.html": "fc8a8d0d1f05e630bfd1542f72be8bf642a695bc7b11da0a1f5f8b5ee561c42f",
     "js/common.js": "03f563e91337df51111a49c471dc39ef9f97c9de3c286baf9fd7c6f6ea67fdcf",
     "js/script.js": "192154d73f3f2b99d9ec65a437a8bcb6d4883155c639c11a339a8e1e8cab97d5",
     "js/vendor/gsap.min.js": "96c01b81f44a3290e2b4532f55e2c9534b2adc43273a19f3756b2cb41f0fd0b6",
