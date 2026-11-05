@@ -8,7 +8,7 @@
   let resizeTimer;
   window.addEventListener('resize', () => {
     clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(() => { scaleCanvas(); window.ScrollTrigger?.refresh(); }, 150);
+    resizeTimer = setTimeout(() => { scaleCanvas(); window.kumuLenis?.resize(); window.ScrollTrigger?.refresh(); }, 150);
   });
   document.addEventListener('click', event => {
     const link = event.target.closest('a[href^="#"]');
@@ -17,8 +17,8 @@
     if (!target) return;
     event.preventDefault();
     document.dispatchEvent(new CustomEvent('kumu:reveal-target', {detail: target}));
-    const smoother = window.ScrollSmoother?.get();
-    if (smoother) smoother.scrollTo(target.offsetTop * parseFloat(root.style.getPropertyValue('--canvas-scale')), true);
+    const lenis = window.kumuLenis;
+    if (lenis) lenis.scrollTo(target.offsetTop * parseFloat(root.style.getPropertyValue('--canvas-scale')));
     else target.scrollIntoView({behavior:'smooth'});
     history.pushState(null, '', link.hash);
     target.setAttribute('tabindex', '-1');

@@ -16,7 +16,7 @@ if(/className=|src=\{|maskImage:/.test(html))failures.push('unconverted JSX');
 if((html.match(/<section /g)||[]).length!==12)failures.push('expected 12 process sections');
 const height=[...html.matchAll(/data-height="(\d+)"/g)].reduce((sum,m)=>sum+Number(m[1]),0);
 if(height!==23132)failures.push('incorrect reference height '+height);
-for(const file of ['css/fonts.css','css/reset.css','css/common.css','css/layout.css','css/responsive.css','css/style.css','js/common.js','js/script.js','js/vendor/gsap.min.js','js/vendor/ScrollTrigger.min.js','js/vendor/ScrollSmoother.min.js','assets/fonts/PretendardVariable.woff2']){
+for(const file of ['css/fonts.css','css/reset.css','css/common.css','css/layout.css','css/responsive.css','css/style.css','js/common.js','js/script.js','js/vendor/gsap.min.js','js/vendor/ScrollTrigger.min.js','js/vendor/lenis.min.js','css/lenis.css','assets/fonts/PretendardVariable.woff2']){
   if(!(await stat(path.join(root,file))).size)failures.push('empty '+file);
 }
 if(failures.length){console.error(failures.join('\n'));process.exit(1);}

@@ -1,7 +1,7 @@
 :root{--canvas-scale:1;--cream:#fdfaf7;--brown:#ad7252;--ink:#111}
 html{font-family:Pretendard,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:var(--ink);background:var(--cream);font-synthesis:none;-webkit-font-smoothing:antialiased}
 body{overflow-x:hidden}
-#smooth-content{overflow:visible;width:100%}
+#page-content{overflow:visible;width:100%}
 .process-canvas{width:1920px;zoom:var(--canvas-scale);margin:0 auto;overflow:clip}
 .process-canvas>section{position:relative;width:1920px;isolation:isolate}
 .process-canvas>section>div{position:relative;width:100%;height:100%}
@@ -35,9 +35,7 @@ body{overflow-x:hidden}
 .entry-unit>.entry-content{pointer-events:auto}
 .entry-anchor{position:absolute;left:0;width:1px;height:1px;pointer-events:none;opacity:0}
 .motion-preparing [data-entry]{opacity:0}
-/* Fixed section geometry lets the browser skip offscreen masks and image paint. */
-.process-canvas>section{content-visibility:auto}
-.process-canvas[data-motion='static-capture']>section{content-visibility:visible}
+/* Lenis keeps native document flow. Avoid waking a whole tall section at once. */
 .strategy-sec [data-entry^='strategy-card']{transition:translate .3s ease;cursor:default}
 .strategy-sec [data-entry^='strategy-card']:hover{translate:0 -9.6px}
 .research-pie{position:absolute;left:363px;top:641px;width:280px;height:280px;overflow:hidden;border-radius:50%;margin:0;background:#fdf8f1}

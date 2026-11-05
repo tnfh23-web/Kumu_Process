@@ -1,29 +1,27 @@
-# 잇고 기준 스크롤 인터랙션
+# Lenis와 빠른 잇고 기준 인터랙션
 
-사용자 지정 레퍼런스 https://r00neyj.github.io/Eatgo_Process/ 의 실제 HTML과 JavaScript를 확인했다. 단순 일회성 opacity 등장 대신 아래 효과·시점·복귀 규칙을 쿠무의 완성된 구성에 대응한다. 레퍼런스의 로고 조각별 blur/scale과 curtain은 사용자가 거부했으므로 적용하지 않는다.
+사용자 정정에 따라 스크롤은 Lenis 1.3.27 하나로 구동한다. GSAP/ScrollTrigger는 3.13.0이다. Lenis 설정은 `new Lenis({smoothWheel:true, lerp:0.08})`, `lenis.on('scroll', ScrollTrigger.update)`, GSAP ticker의 `lenis.raf(time*1000)`, `gsap.ticker.lagSmoothing(0)`이다. autoRaf와 별도 RAF는 사용하지 않는다. 해제 시 자신의 ticker callback 제거, scroll 이벤트 해제, lenis.destroy를 수행한다. 전체 문서가 transform되는 wrapper는 없다.
 
-| 쿠무 구성 | 레퍼런스에서 가져온 동작 |
+레퍼런스: https://r00neyj.github.io/Eatgo_Process/ 의 .6초 fadeUp과 순차 등장. 사용자 요청에 따라 차트 완성을 빠르게 하고 스크롤 보간과 scrub 지연이 겹쳐 느려지는 부분을 줄였다. 로고 조각별 blur/scale과 curtain은 적용하지 않는다.
+
+| 구성 | 동작 |
 |---|---|
-| Hero | 사진 y 100→0, 설명 y -100→0, 1초 power1.out. 정보·툴·워드마크는 완성된 구성의 순차 fade |
-| 섹션 label / 전략 원형 카드 | popin: scale .75·opacity 0→scale 1→1.04→1, scrub 1 |
-| 제목·설명·질문·서체 | fade: opacity 0→1, scrub 1 |
-| 문제 카드·기기 목업·화면·적용 사진·Flow | fadeUp: y 100→0·opacity 0→1, .6초 power1.out, 같은 행 200ms 간격 |
-| 화면 annotation | slideLeft/Right: 구성 전체가 폭의 ±25%→0·opacity 0→1, scrub 1 |
-| Tool·전체 로고·팔레트 | .6초 순차 fade. 테두리·도형·글자 분리 없음, 마스크 채움 없음. 팔레트는 행 제목 다음 왼쪽부터 |
-| 리서치 막대 | 질문이 화면 중앙에 오면 왼쪽 고정 위치에서 width 0→원본 길이, 같은 progress로 0→37/28/21/14% counter. 1.8초 power1.out, 200ms 순서. 숫자는 막대 끝을 따라가고 설명은 제자리 fade |
-| 원그래프 | 질문이 화면 중앙에 오면 시작, 화면 높이 30%를 스크롤하는 동안 시계 방향 0→82%, scrub 1. 수치는 별도 1.8초 counter |
-| 전략 카드 hover | 레퍼런스 up 효과와 같은 -0.5vw(1920 기준 -9.6px), .3초. scroll scale과 독립된 CSS translate |
+| Hero | 사진 y100→0, 설명 y-100→0, .8초 power1.out. 정보·툴·워드마크는 완성된 구성으로 순차 fade |
+| label / 원형 전략 카드 | popin scale .75→1(.4초)→1.04(.15초)→1(.15초), scrub .25 |
+| 제목·본문·질문·서체 | 전체 opacity 0→1, scrub .25 |
+| 문제 카드·기기 목업·화면·적용 사진·Flow | 전체 y100→0·opacity 0→1, .6초 power1.out, 행 간격 .12초 |
+| 화면 annotation | 좌/우 폭의 ±25%→0·opacity 0→1, scrub .25 |
+| Tool·로고·팔레트 | 테두리·도형·문구를 완성된 구성으로 .6초 fade. 같은 행은 .12초 간격, 왼쪽부터 |
+| 리서치 막대 | 질문 중앙 진입 후 왼쪽 고정 width 0→원본 길이와 0→37/28/21/14% 카운트를 같은 progress로 .6초에 완성. 행 간격 .12초. 숫자는 끝을 따라가고 설명은 제자리 fade |
+| 원그래프 | 같은 중심·반지름 140의 native SVG 원/82% 부채꼴. 30vh 스크롤로 시계 방향 채움(scrub .25), 숫자는 .6초 counter. 빈 곳에 흰 문구가 걸리지 않게 채워진 뒤 caption fade |
+| 전략 카드 hover | scroll scale과 별개로 translate y -9.6px, .3초 |
 
-일반 트리거는 top bottom→bottom 75%, toggleActions play none none reverse. 긴 화면 이미지는 첫 650px 구간에서 등장을 완성해 읽기 전에 전체 화면을 볼 수 있도록 한다. 로고와 팔레트는 같은 행의 첫 구성 위치에서 순차 재생한다. 역방향에서는 각 구성과 차트가 복귀한다.
+일반 트리거는 top bottom→bottom 75%, toggleActions play none none reverse다. 긴 화면은 첫 650px에서 등장을 완성한다. 역방향에는 효과가 복귀하고, 앵커/키보드 탐색 시 대상 구성을 완성해 접근을 보장한다. 5초 visibility failsafe 후에도 늦게 준비된 모션이 시작되며 늦은 첫 화면은 완성 상태로 유지한다. 실패 시 기본 스크롤·완성 차트·본문이 남는다.
 
-## 그래프와 성능
+## 목업 렌더링
 
-파이는 이미지 조각 없이 중심 (140,140), 반지름 140의 배경 원과 82% SVG 부채꼴로 그린다. r 70·stroke-width 140의 원형 마스크 dashoffset으로 시계 방향 채움을 제어하며, 두 원의 외곽 반지름이 같다. 흰색 caption이 빈 영역에 걸쳐 반쪽만 보이지 않도록 해당 위치가 채워진 뒤 전체를 fade한다. 접근성 설명은 최종 82%를 제공한다.
+전체 섹션 크기로 잡던 wrapper는 앞선 수정에서 실제 경계로 제한했다. 이번에는 30개 이미지 컨테이너의 RGB 원본과 alpha/luminance 마스크를 미리 합쳐 24개 무손실 투명 WebP로 연결했다. 필수 투명도·크롭과 원본 배치는 유지한다. 단색/둥근 SVG 배경 11곳은 같은 색·크기의 CSS로 바꿨다. native 문서 스크롤에서는 content-visibility:auto의 큰 섹션 활성화를 사용하지 않으며 브라우저의 기본 culling과 native lazy image를 사용한다.
 
-102개 등장 구성을 유지하면서, 68개 전체 섹션 크기 wrapper를 콘텐츠 경계+여백 크기로 줄였다. wrapper 면적 합은 328,773,120→21,947,526px²(93.3% 감소). 내부 좌표 plane은 원본 배치를 보존하고 바깥 wrapper가 paint를 제한한다. 단일 히어로 직사각형 중복 마스크 40개를 제거했다. 필수 이미지 투명도/크롭 마스크는 유지한다.
+## 확인 근거
 
-모든 CSS 마스크를 getComputedStyle로 찾고 별도 Image로 decode하던 선처리를 제거했다. 첫 화면만 준비를 기다리며 나머지는 native lazy image, content-visibility:auto를 사용한다. ScrollTrigger는 저장된 원본 좌표×PC 배율을 사용해 화면 밖 콘텐츠의 레이아웃을 강제하지 않는다. smooth .75의 ScrollSmoother 하나만 사용한다. 별도 스크롤 RAF 루프나 중복 스크롤 라이브러리는 없다.
-
-정적 검수 모드 ?capture=1은 content-visibility와 lazy 로딩을 해제해 원본 크기 1920×23,132 전체를 비교한다. 5초 visibility failsafe가 실행돼도 늦게 준비된 모션은 초기화한다. 늦은 첫 화면만 완성 상태로 유지해 재등장 깜박임을 피한다. 초기화 실패 시 내용·완성 막대·82% 파이와 기본 스크롤을 복구한다. 파비콘은 빈 data URL로 유지하고 Figma 외부 링크는 UI/README에 표시하지 않는다.
-
-검수: 12개 섹션의 전후 전체 캡처 비교, 파이 중간/완료/역방향 상태, 로고·툴 하위 요소에 개별 transform·opacity 변경이 없는지, 동일 viewport의 실제 입력 전후 프레임 샘플을 확인한다. 성능 수치는 실행 환경에 따라 달라지며 전체 기기의 무지연을 보장하는 수치로 사용하지 않는다.
+1280×720 PC 브라우저에서 GUI 시작→20회 동일 .35페이지 휠 입력으로 메인 화면까지 비교했다. 이전 버전 d46d526의 50ms 초과 프레임 55회/평균26.09ms/최대897.3ms, 수정 후 1회/평균16.89ms/최대100ms를 기록했다. 실행 환경·캐시·진입 상태에 따라 수치는 달라지며 모든 기기의 무지연을 보장하지 않는다. 원본과 미리 합친 자산의 전체 비교는 1280×15,421px 정적 캡처로 수행했다. 레이아웃·텍스트는 유지하며 이미지 리샘플링·투명도·둥근 모서리에서 소폭 픽셀 차이가 있다. 원본 1920×23,132의 ?capture=1도 유지한다.

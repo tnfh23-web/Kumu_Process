@@ -1,3 +1,3 @@
 /* The brief requests one PC composition, without mobile/tablet reflow.
    Desktop widths scale the same 1920px artboard uniformly; minimum canvas is 1280px. */
-@media print{#smooth-wrapper,#smooth-content{position:static!important;transform:none!important}.back-top,.skip-link{display:none!important}.process-canvas{zoom:.5!important}[data-motion-state]{opacity:1!important;visibility:visible!important;transform:none!important}body{min-width:0}}
+@media print{#page-wrapper,#page-content{position:static!important;transform:none!important}.back-top,.skip-link{display:none!important}.process-canvas{zoom:.5!important}[data-motion-state]{opacity:1!important;visibility:visible!important;transform:none!important}body{min-width:0}}
