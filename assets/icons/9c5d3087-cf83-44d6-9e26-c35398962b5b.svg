@@ -1,0 +1,20 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="1920" height="21460" viewBox="0 0 1920 21460" fill="none" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="Group">
+<g id="mask_340_contents">
+<path id="Vector" d="M1920 0H0V2150H1920V0Z" fill="white"/>
+<g id="Group_2">
+<g id="Group_3">
+<g id="Group_4">
+<rect id="Rectangle" x="1382" y="21403" width="2" height="57" fill="url(#pattern0_0_16)"/>
+</g>
+</g>
+</g>
+</g>
+</g>
+<defs>
+<pattern id="pattern0_0_16" patternContentUnits="objectBoundingBox" width="1" height="1">
+<use xlink:href="#image0_0_16" transform="scale(0.5 0.0175439)"/>
+</pattern>
+<image id="image0_0_16" width="2" height="57" preserveAspectRatio="none" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAA5CAYAAAAcC/pKAAAAOUlEQVR42t2NQQoAIBACZ8P9/5PtUIcoiKBOeRpUNAADFLokqUFmnjsrDB1Njnblq+jVzu8XYdsAFdn0CMT4pzQ9AAAAAElFTkSuQmCC"/>
+</defs>
+</svg>
