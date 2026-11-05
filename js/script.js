@@ -16,6 +16,7 @@
   let context;
   function visible(){
     units.forEach(e=>{e.style.opacity=original.get(e);e.style.removeProperty('transform');e.dataset.motionState='entered';});
+    units.filter(e=>e.dataset.effect==='bar').forEach(e=>{e.querySelector('.research-bar-fill').style.width='100%';e.querySelector('.research-bar-count').textContent=e.dataset.barTarget+'%';e.querySelector('[data-bar-description]').style.removeProperty('opacity');});
     document.querySelector('.pie-sweep')?.setAttribute('stroke-dashoffset','0');
     document.querySelector('.pie-number').textContent='82%';
     document.querySelector('.research-pie figcaption').style.removeProperty('opacity');
@@ -27,6 +28,24 @@
   }
   if(!window.gsap||!window.ScrollTrigger||!window.ScrollSmoother){fallback();return;}
   const {gsap,ScrollTrigger,ScrollSmoother}=window;
+  function setupBar(e,index,name){
+    const fill=e.querySelector('.research-bar-fill'),number=e.querySelector('.research-bar-count');
+    const description=e.querySelector('[data-bar-description]');
+    const target=Number(e.dataset.barTarget),value={progress:0};
+    const question=document.querySelector('[data-entry="research-question-left"]');
+    const draw=()=>{
+      fill.style.width=(value.progress*100)+'%';
+      const text=Math.round(target*value.progress)+'%';
+      if(number.textContent!==text)number.textContent=text;
+      e.dataset.barProgress=value.progress.toFixed(3);
+    };
+    draw();
+    const tl=gsap.timeline({paused:true,onUpdate(){e.dataset.motionState=tl.progress()===1?'entered':tl.progress()===0?'idle':'entering';}});
+    tl.to(value,{progress:1,duration:1.8,ease:'power1.out',onUpdate:draw},index*.2);
+    tl.fromTo(description,{opacity:0},{opacity:1,duration:.6,ease:'none'},index*.2);
+    const trigger=ScrollTrigger.create({animation:tl,start:()=>position(question)-innerHeight*.5,toggleActions:'play none none reverse'});
+    motion.groups.push({name,units:[e],timeline:tl,trigger});
+  }
   function entries(){
     const batches=new Map();
     units.forEach(e=>{const key=e.dataset.entryBatch||e.dataset.entry;if(!batches.has(key))batches.set(key,[]);batches.get(key).push(e);});
@@ -34,6 +53,7 @@
       elements.sort((a,b)=>+a.dataset.entryOrder-+b.dataset.entryOrder);
       elements.forEach((e,index)=>{
         const effect=e.dataset.effect||'fade',hero=name==='hero-opening';
+        if(effect==='bar'){setupBar(e,index,name);return;}
         const plain=name.startsWith('palette-')||/identity-(primary-logo|logotype|brandmark|submark)|hero-(tools|wordmark)/.test(e.dataset.entry);
         const scrub=!hero&&!plain&&effect!=='fadeUp';
         const delay=index*(hero?.11:.2);
@@ -52,7 +72,7 @@
           tl.fromTo(e,from,to,delay);
         }
         let trigger=null;
-        if(hero)tl.play();
+        if(hero){if(window.kumuPreparationExpired)tl.progress(1);else tl.play();}
         else{
           // Recorded source coordinates avoid laying out every masked offscreen section.
           const triggerElement=plain?elements[0]:e;
@@ -76,15 +96,15 @@
     try{
       await document.fonts.ready;
       await Promise.allSettled([...document.querySelectorAll('.hero-sec img')].map(e=>e.decode()));
-      if(window.kumuPreparationExpired){fallback();return;}
+      // The five-second visibility failsafe must never disable late-loading motion.
       gsap.registerPlugin(ScrollTrigger,ScrollSmoother);
       ScrollTrigger.config({ignoreMobileResize:true});
       motion.smoother=ScrollSmoother.get()||ScrollSmoother.create({wrapper:'#smooth-wrapper',content:'#smooth-content',smooth:.75,smoothTouch:0,effects:false});
       root.classList.remove('motion-preparing');
       context=gsap.context(entries,main);
-      root.classList.add('js-ready');main.dataset.motion='ready';motion.state='ready';
+      root.classList.add('js-ready');main.dataset.motion='ready';motion.state='ready';main.dataset.motionReadyMs=Math.round(performance.now());main.dataset.preparation=window.kumuPreparationExpired?'late-ready':'ready';
       ScrollTrigger.refresh();
-      if(location.hash){const target=document.querySelector(location.hash);if(target)motion.smoother.scrollTo(target,false,'top top');}
+      if(location.hash){const target=document.querySelector(location.hash);if(target)motion.smoother.scrollTo(target.offsetTop*scale(),false);}
     }catch(error){fallback(error);}
   }
   document.addEventListener('kumu:reveal-target',event=>{

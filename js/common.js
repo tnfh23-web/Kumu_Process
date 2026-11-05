@@ -18,7 +18,7 @@
     event.preventDefault();
     document.dispatchEvent(new CustomEvent('kumu:reveal-target', {detail: target}));
     const smoother = window.ScrollSmoother?.get();
-    if (smoother) smoother.scrollTo(target, true, 'top top');
+    if (smoother) smoother.scrollTo(target.offsetTop * parseFloat(root.style.getPropertyValue('--canvas-scale')), true);
     else target.scrollIntoView({behavior:'smooth'});
     history.pushState(null, '', link.hash);
     target.setAttribute('tabindex', '-1');

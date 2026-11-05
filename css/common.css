@@ -45,3 +45,8 @@ body{overflow-x:hidden}
 .research-pie figcaption{position:absolute;inset:0;color:#fdfaf7;text-align:center;pointer-events:none}
 .pie-label{position:absolute;top:162px;left:0;right:0;font-size:20px;line-height:26px;font-weight:500}
 .pie-number{position:absolute;top:194px;left:0;right:0;font-size:30px;line-height:38px;font-weight:600;font-variant-numeric:tabular-nums}
+
+/* Survey bars grow from their fixed left edge; the number follows the right edge. */
+.research-bar-track{position:absolute}
+.research-bar-fill{position:absolute;left:0;top:0;width:100%;height:100%;border-radius:0 8px 8px 0;overflow:hidden}
+.research-bar-count{position:absolute;margin:0;font-size:20px;line-height:normal;font-weight:600;white-space:nowrap;color:#fdfaf7;text-align:right;font-variant-numeric:tabular-nums}
