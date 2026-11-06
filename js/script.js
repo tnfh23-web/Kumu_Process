@@ -22,7 +22,45 @@
   const scale=()=>parseFloat(root.style.getPropertyValue('--canvas-scale'))||1;
   const position=e=>Number(e.dataset.motionTop)*scale();
   const height=e=>Math.min(Number(e.dataset.motionHeight),650)*scale();
-  let context,updateScroll;
+  let context,updateScroll,stopPredecode;
+  function recordState(element,timeline){
+    const progress=timeline.progress();
+    const state=progress===1?'entered':progress===0?'idle':'entering';
+    if(element.dataset.motionState!==state)element.dataset.motionState=state;
+  }
+  function predecodeNearViewport(){
+    if(!window.IntersectionObserver||!window.requestIdleCallback)return;
+    const queue=[];
+    let idle=0,decoding=false,stopped=false;
+    function schedule(){
+      if(stopped||idle||decoding||!queue.length)return;
+      idle=requestIdleCallback(async()=>{
+        idle=0;
+        const image=queue.shift();
+        if(image.getBoundingClientRect().bottom<=0){schedule();return;}
+        decoding=true;
+        image.loading='eager';
+        try{await image.decode();}catch{/* Native image loading remains available. */}
+        decoding=false;
+        schedule();
+      });
+    }
+    const observer=new IntersectionObserver(entries=>{
+      for(const entry of entries){
+        if(!entry.isIntersecting)continue;
+        observer.unobserve(entry.target);
+        queue.push(entry.target);
+      }
+      schedule();
+    },{rootMargin:'1000px 0px'});
+    main.querySelectorAll('img[data-predecode]').forEach(image=>observer.observe(image));
+    return ()=>{
+      stopped=true;
+      observer.disconnect();
+      if(idle)cancelIdleCallback(idle);
+      queue.length=0;
+    };
+  }
   function visible(){
     units.forEach(e=>{e.style.opacity=original.get(e);e.style.removeProperty('transform');e.dataset.motionState='entered';});
     units.filter(e=>e.dataset.effect==='bar').forEach(e=>{e.querySelector('.research-bar-fill').style.width='100%';e.querySelector('.research-bar-count').textContent=e.dataset.barTarget+'%';e.querySelector('[data-bar-description]').style.removeProperty('opacity');});
@@ -38,6 +76,7 @@
   if(!window.gsap||!window.ScrollTrigger||!window.Lenis){fallback();return;}
   const {gsap,ScrollTrigger,Lenis}=window;
   function stopScroll(){
+    stopPredecode?.();
     if(updateScroll)window.gsap?.ticker.remove(updateScroll);
     motion.lenis?.off('scroll',window.ScrollTrigger?.update);
     motion.lenis?.destroy();
@@ -55,7 +94,7 @@
       e.dataset.barProgress=value.progress.toFixed(3);
     };
     draw();
-    const tl=gsap.timeline({paused:true,onUpdate(){e.dataset.motionState=tl.progress()===1?'entered':tl.progress()===0?'idle':'entering';}});
+    const tl=gsap.timeline({paused:true,onUpdate(){recordState(e,tl);}});
     tl.to(value,{progress:1,duration:.6,ease:'power1.out',onUpdate:draw},index*.12);
     tl.fromTo(description,{opacity:0},{opacity:1,duration:.6,ease:'none'},index*.12);
     const trigger=ScrollTrigger.create({animation:tl,start:()=>position(question)-innerHeight*.5,toggleActions:'play none none reverse'});
@@ -73,7 +112,7 @@
         const scrub=!hero&&!plain&&effect!=='fadeUp';
         const delay=index*(hero?.08:.12);
         const opacity=parseFloat(original.get(e)||'1');
-        const tl=gsap.timeline({paused:true,onUpdate(){const p=tl.progress();e.dataset.motionState=p===1?'entered':p===0?'idle':'entering';}});
+        const tl=gsap.timeline({paused:true,onUpdate(){recordState(e,tl);}});
         if(hero){
           const y=e.dataset.entry==='hero-photo'?100:e.dataset.entry==='hero-project-title'?-100:0;
           tl.fromTo(e,{opacity:0,y},{opacity,y:0,duration:.8,ease:'power1.out'},delay);
@@ -105,7 +144,7 @@
     draw();
     gsap.to(progress,{value:1,ease:'none',onUpdate:draw,scrollTrigger:{start:()=>position(question)-innerHeight*.5,end:()=>position(question)-innerHeight*.2,scrub:.25}});
     const count={value:0},number=figure.querySelector('.pie-number');
-    gsap.to(count,{value:82,duration:.6,ease:'none',onUpdate(){number.textContent=Math.round(count.value)+'%';},scrollTrigger:{start:()=>position(question)-innerHeight*.5,toggleActions:'play none none reverse'}});
+    gsap.to(count,{value:82,duration:.6,ease:'none',onUpdate(){const text=Math.round(count.value)+'%';if(number.textContent!==text)number.textContent=text;},scrollTrigger:{start:()=>position(question)-innerHeight*.5,toggleActions:'play none none reverse'}});
   }
   async function init(){
     try{
@@ -125,6 +164,7 @@
       context=gsap.context(entries,main);
       root.classList.add('js-ready');main.dataset.motion='ready';motion.state='ready';main.dataset.motionReadyMs=Math.round(performance.now());main.dataset.preparation=window.kumuPreparationExpired?'late-ready':'ready';
       ScrollTrigger.refresh();
+      stopPredecode=predecodeNearViewport();
       loadTypeSpecimen();
       if(location.hash){const target=document.querySelector(location.hash);if(target)motion.lenis.scrollTo(Number(target.dataset.motionTop??target.offsetTop)*scale(),{immediate:true});}
     }catch(error){fallback(error);}

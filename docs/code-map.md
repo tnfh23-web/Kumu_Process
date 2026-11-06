@@ -14,7 +14,7 @@
 | `css/layout.css` | Figma의 배치·크기·마스크·텍스트 스타일을 변환한 좌표 규칙 | index.html의 g 클래스와 노드 ID | 특정 원본 요소의 위치·비율 변경 |
 | `css/responsive.css` | PC 단일 구성을 명시하고 인쇄 시 스크롤 변형 해제 | 전체 화면 | 인쇄와 표시 정책 변경 |
 | `js/common.js` | PC 캔버스 배율, 앵커·TOP·키보드 탐색, resize 새로 계산 | Lenis, script.js 이벤트 | 탐색·스크롤 이동·크기 계산 변경 |
-| `js/script.js` | 잇고의 fade/fadeUp/popin/좌우 slide, scroll scrub·역방향 복귀, SVG 파이 scroll 채움·counter, native 막대 width·counter 동기화, 잘난체 FontFace 비동기 등록, 스무딩·복구 | GSAP/ScrollTrigger + Lenis, data-entry/data-entry-batch/data-entry-order | 등장 순서·수치·트리거·연출 변경 |
+| `js/script.js` | 잇고의 fade/fadeUp/popin/좌우 slide, scroll scrub·역방향 복귀, SVG 파이 scroll 채움·counter, native 막대 width·counter 동기화, 잘난체 비동기 등록, 가까운 큰 이미지의 순차 디코드, 스무딩·복구 | GSAP/ScrollTrigger + Lenis, data-entry/data-entry-batch/data-entry-order | 등장 순서·수치·트리거·연출 변경 |
 | `js/vendor/gsap.min.js` | GSAP 3.13.0 애니메이션 코어 | script.js | GSAP와 ScrollTrigger를 함께 검증 |
 | `js/vendor/ScrollTrigger.min.js` | GSAP 3.13.0 스크롤 진입 감지 | script.js, Lenis | GSAP와 ScrollTrigger를 함께 검증 |
 | `js/vendor/lenis.min.js` | Lenis 1.3.27, smoothWheel·lerp .08 | script.js의 단일 GSAP ticker | Lenis 공식 버전 변경 때 |
@@ -28,7 +28,7 @@
 2. 스크롤 → 원본 좌표(data-motion-top/height)×현재 PC 배율로 진입 계산 → 제목·본문 scrub fade, 카드/목업 fadeUp, 원형 카드 popin, 설명 좌우 slide. 역방향에서는 복귀합니다. 긴 이미지의 진입 높이는 650px로 제한합니다.
 3. 리서치 질문이 화면 중앙 통과 → 30vh의 스크롤 동안 동일 반지름 SVG 파이를 시계 방향 0→82% 채움(scrub .25) → 별도 .6초 숫자 counter. 막대는 질문 중앙 진입 시 왼쪽 위치를 고정한 채 원본 길이까지 늘어나고 숫자도 0→37/28/21/14%로 함께 증가합니다(.6초, 행 간격 .12초). 숫자는 막대 끝을 따라가며 설명은 제자리 fade입니다.
 4. Tool·로고·팔레트는 테두리·배경·글자를 완성된 구성으로 묶어 fade합니다. 팔레트는 행 제목 다음 왼쪽부터 120ms 간격입니다. 하위 벡터·mask는 애니메이션하지 않습니다. 전략 카드 hover translate는 scroll scale과 독립됩니다.
-5. Lenis는 전체 페이지를 transform하지 않고 native 문서 스크롤을 사용합니다. 이미지 컨테이너 30곳은 마스크를 미리 합친 무손실 WebP 24개로 교체했고, 단색/둥근 배경 11곳은 CSS입니다. 섹션 content-visibility:auto에 따른 한꺼번에 그리기를 제거했으며 이미지는 native lazy 로딩합니다. 경계가 제한된 wrapper 안의 entry-plane이 원본 Figma 좌표를 보존합니다. 이미지를 기다리려고 전체 페이지의 스타일/마스크를 탐색하지 않습니다.
+5. Lenis는 전체 페이지를 transform하지 않고 native 문서 스크롤을 사용합니다. 이미지 컨테이너 30곳은 마스크를 미리 합친 WebP 24개로 교체했고, 단색/둥근 배경 11곳은 CSS입니다. 섹션 content-visibility:auto에 따른 한꺼번에 그리기를 제거했으며 이미지는 native lazy 로딩합니다. 화면 가까이의 큰 이미지는 브라우저가 여유 있을 때 한 장씩 먼저 디코드합니다. 경계가 제한된 wrapper 안의 entry-plane이 원본 Figma 좌표를 보존합니다. 이미지를 기다리려고 전체 페이지의 스타일/마스크를 탐색하지 않습니다.
 6. TOP·건너뛰기 → 대상 타임라인 완성 → PC 배율을 반영한 숫자 좌표로 lenis.scrollTo(실패 시 native) → hash·초점 갱신. 내용·사용자 데이터를 외부 전송하지 않습니다. pagehide/unmount 시 자신의 ticker callback을 제거하고 Lenis 이벤트·인스턴스와 context만 정리합니다.
 7. ?capture=1 → Lenis/모션 생략, 모든 이미지 eager·모든 섹션 visible → 1920×23,132 정적 비교. 실제 모션·성능 검수는 일반 모드에서 별도로 수행합니다.
 
@@ -45,9 +45,9 @@
     "css/reset.css": "add29fe8aeccee71d2e08ef6bf3552e73c77067b83bee84f837b0785bc923556",
     "css/responsive.css": "4ba755a207c1ca281a0ee7339bcc6482a29dbc3484887432ba571aa17f77a651",
     "css/style.css": "cb3e53325c5ee3835a8f59f0e6bc1fb676287cea4493db45876697a417cab093",
-    "index.html": "6d521a06c2ec80fedc0419eb49984c6966a62c0cb7907a54cee66d259aa829e7",
+    "index.html": "d3d6d25a1b4b3218e0932c9670f221d4aaf6d6325637e619fe336339d2addd3f",
     "js/common.js": "944b0c2874d8d0c952420153844487d721b3a34a6d8d563a4a793ca4fcd2c565",
-    "js/script.js": "fdcc651f59aa96368785e39c81ac6f43ba489c67137b3bb546adbb2c2a8336e4",
+    "js/script.js": "416276f14fc26dbd11faf30a7847a9e8d9248f169b9ce9872f5ee2e7085472bb",
     "js/vendor/gsap.min.js": "96c01b81f44a3290e2b4532f55e2c9534b2adc43273a19f3756b2cb41f0fd0b6",
     "js/vendor/lenis.min.js": "80f53e77f1c13e379fc246d2b5e299188e20bcb2b2fe7ebb13e8e8c7563a6da7",
     "js/vendor/ScrollTrigger.min.js": "308219390e5e3b84cda0c481e70caa9820883ae10bda44e6e9a149a81aac4b3f",
