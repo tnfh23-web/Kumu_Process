@@ -8,7 +8,7 @@
 |---|---|---|---|
 | `index.html` | 원본 순서의 12개 섹션, 102개 명시적 등장 구성·원본 트리거 좌표·실제 경계 wrapper, 직접 그린 SVG 파이, 접근성 링크와 빈 파비콘 지정 | 모든 CSS와 JS, assets | 문구·콘텐츠·이미지·섹션 구조 변경 |
 | `css/style.css` | CSS 파일을 순서대로 불러오는 진입점 | lenis → fonts → reset → common → layout → responsive | 스타일 구성 변경 |
-| `css/fonts.css` | 로컬 Pretendard Variable 로딩과 왼쪽 잘난체 샘플 범위 지정 | assets/fonts | 웹 글꼴 변경 |
+| `css/fonts.css` | 로컬 Pretendard Variable 로딩, 왼쪽 잘난체 샘플 범위와 Aa 기준선 보정 | assets/fonts | 웹 글꼴 변경 |
 | `css/reset.css` | 기본 여백과 요소 규칙, 최소 PC 폭, 키보드 포커스 | 전체 화면 | 브라우저 기본 스타일 문제 수정 |
 | `css/common.css` | PC 캔버스, 경계 제한 wrapper/내부 좌표 plane, native document 흐름, SVG 파이, TOP 버튼 스타일 | index.html, js/common.js | 전체 색·공통 요소·원본 보정 변경 |
 | `css/layout.css` | Figma의 배치·크기·마스크·텍스트 스타일을 변환한 좌표 규칙 | index.html의 g 클래스와 노드 ID | 특정 원본 요소의 위치·비율 변경 |
@@ -39,13 +39,13 @@
   "version": 1,
   "files": {
     "css/common.css": "b40cfde48cdb1218388d443ef554011a33e5ed9833d5f4f352727f1b4dad2c49",
-    "css/fonts.css": "d5433c88c2139760482d29897094e05c33cc6a7ab1251b01cb8ff86658002e4e",
+    "css/fonts.css": "dd0f49f79748fa491ce2e09ffdf0fa7ab55cb43b25bdd7b581f5f3d631b8254d",
     "css/layout.css": "fc1462089e3e021bfe532af36906586120b1b8c262cc7089f79cf0576b7b9054",
     "css/lenis.css": "2f668ae84a668327f246faf8a770383a2bf69196d214290fbc4d5548910606c5",
     "css/reset.css": "add29fe8aeccee71d2e08ef6bf3552e73c77067b83bee84f837b0785bc923556",
     "css/responsive.css": "4ba755a207c1ca281a0ee7339bcc6482a29dbc3484887432ba571aa17f77a651",
-    "css/style.css": "843ee24b0d2d6cb9cfdb8832e1e105c1ae3ab680ee591d6cdefb9600a4c58429",
-    "index.html": "d12e66c54c54ab43ab4202d11f800163037d38989b690748fe4fd6deac68c52c",
+    "css/style.css": "cb3e53325c5ee3835a8f59f0e6bc1fb676287cea4493db45876697a417cab093",
+    "index.html": "7d5d95d591734f00027dd6da8f06fae2743c788d6bfe36236064579afaf8e297",
     "js/common.js": "944b0c2874d8d0c952420153844487d721b3a34a6d8d563a4a793ca4fcd2c565",
     "js/script.js": "fdcc651f59aa96368785e39c81ac6f43ba489c67137b3bb546adbb2c2a8336e4",
     "js/vendor/gsap.min.js": "96c01b81f44a3290e2b4532f55e2c9534b2adc43273a19f3756b2cb41f0fd0b6",

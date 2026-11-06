@@ -2,3 +2,13 @@
 
 /* Only the left type specimen uses Jalnan; site copy and the right specimen retain Pretendard. */
 .process-canvas [data-entry="identity-type-left"] [data-copy]{font-family:'Kumu Jalnan','여기어때 잘난체 2','Jalnan 2',Pretendard,sans-serif;font-weight:400}
+
+/* The Aa samples share a visual cap height and baseline. Keep the labels in place. */
+.process-canvas [data-entry="identity-type-left"] .g258 {
+  translate: 0 20px;
+}
+
+:root[data-type-specimen-font="jalnan2"] .process-canvas [data-entry="identity-type-left"] .g258 {
+  font-size: 237px;
+  translate: 42px 84px;
+}
