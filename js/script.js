@@ -22,7 +22,29 @@
   const scale=()=>parseFloat(root.style.getPropertyValue('--canvas-scale'))||1;
   const position=e=>Number(e.dataset.motionTop)*scale();
   const height=e=>Math.min(Number(e.dataset.motionHeight),650)*scale();
-  let context,updateScroll,stopPredecode;
+  let context,updateScroll,stopPredecode,stopNearbyLayers;
+  function prepareNearbyLayers(){
+    if(!window.IntersectionObserver)return;
+    const observer=new IntersectionObserver(entries=>{
+      for(const entry of entries){
+        entry.target.style.willChange=entry.isIntersecting?'transform, opacity':'auto';
+      }
+    },{rootMargin:'500px 0px'});
+    units.forEach(unit=>observer.observe(unit));
+    return ()=>{observer.disconnect();units.forEach(unit=>unit.style.removeProperty('will-change'));};
+  }
+  function prepareTypeSpecimen(){
+    const target=document.querySelector('[data-entry="identity-type-left"]');
+    if(!window.IntersectionObserver||!target){loadTypeSpecimen();return;}
+    const observer=new IntersectionObserver(entries=>{
+      if(!entries.some(entry=>entry.isIntersecting))return;
+      observer.disconnect();
+      loadTypeSpecimen();
+    },{rootMargin:'1500px 0px'});
+    observer.observe(target);
+    return ()=>observer.disconnect();
+  }
+  let stopTypeSpecimen;
   function recordState(element,timeline){
     const progress=timeline.progress();
     const state=progress===1?'entered':progress===0?'idle':'entering';
@@ -53,7 +75,7 @@
       }
       schedule();
     },{rootMargin:'1000px 0px'});
-    main.querySelectorAll('img[data-predecode]').forEach(image=>observer.observe(image));
+    main.querySelectorAll('img[loading="lazy"]').forEach(image=>observer.observe(image));
     return ()=>{
       stopped=true;
       observer.disconnect();
@@ -77,6 +99,8 @@
   const {gsap,ScrollTrigger,Lenis}=window;
   function stopScroll(){
     stopPredecode?.();
+    stopNearbyLayers?.();
+    stopTypeSpecimen?.();
     if(updateScroll)window.gsap?.ticker.remove(updateScroll);
     motion.lenis?.off('scroll',window.ScrollTrigger?.update);
     motion.lenis?.destroy();
@@ -132,7 +156,7 @@
           const triggerElement=plain?elements[0]:e;
           trigger=ScrollTrigger.create({animation:tl,start:()=>position(triggerElement)-innerHeight,
             end:()=>position(triggerElement)+height(triggerElement)-innerHeight*.75,
-            scrub: scrub ? 0.25 : false,toggleActions:'play none none reverse',invalidateOnRefresh:true});
+            scrub: scrub ? 0.25 : false,toggleActions:'play none none reverse'});
         }
         motion.groups.push({name,units:[e],timeline:tl,trigger});
       });
@@ -148,9 +172,6 @@
   }
   async function init(){
     try{
-      await document.fonts.ready;
-      await Promise.allSettled([...document.querySelectorAll('.hero-sec img')].map(e=>e.decode()));
-      // The five-second visibility failsafe must never disable late-loading motion.
       gsap.registerPlugin(ScrollTrigger);
       ScrollTrigger.config({ignoreMobileResize:true});
       motion.lenis=new Lenis({smoothWheel:true,lerp:0.08});
@@ -160,12 +181,16 @@
       gsap.ticker.add(updateScroll);
       gsap.ticker.lagSmoothing(0);
       root.dataset.scrollEngine='lenis';root.dataset.scrollLerp='0.08';
+      await document.fonts.ready;
+      await Promise.allSettled([...document.querySelectorAll('.hero-sec img')].map(e=>e.decode()));
+      // The scroll engine is already running while first-visit media finishes loading.
       root.classList.remove('motion-preparing');
       context=gsap.context(entries,main);
       root.classList.add('js-ready');main.dataset.motion='ready';motion.state='ready';main.dataset.motionReadyMs=Math.round(performance.now());main.dataset.preparation=window.kumuPreparationExpired?'late-ready':'ready';
       ScrollTrigger.refresh();
       stopPredecode=predecodeNearViewport();
-      loadTypeSpecimen();
+      stopNearbyLayers=prepareNearbyLayers();
+      stopTypeSpecimen=prepareTypeSpecimen();
       if(location.hash){const target=document.querySelector(location.hash);if(target)motion.lenis.scrollTo(Number(target.dataset.motionTop??target.offsetTop)*scale(),{immediate:true});}
     }catch(error){fallback(error);}
   }

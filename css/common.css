@@ -29,7 +29,7 @@ body{overflow-x:hidden}
 .strategy-sec [data-name^='Strategy Card ']{box-shadow:0 5px 14px #442e2020;overflow:hidden}
 .js-ready .back-top.is-visible{opacity:1;visibility:visible}
 /* Each unit owns an entire graphic, including its outlines, fills and labels. */
-.entry-unit{position:absolute;overflow:clip;pointer-events:none;transform-origin:center}
+.entry-unit{position:absolute;overflow:clip;contain:paint;pointer-events:none;transform-origin:center}
 .entry-plane{position:absolute;pointer-events:none}
 .entry-plane>.entry-content{pointer-events:auto}
 .entry-unit>.entry-content{pointer-events:auto}
