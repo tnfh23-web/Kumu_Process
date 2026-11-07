@@ -8,7 +8,7 @@
   function loadTypeSpecimen(){
     if(!window.FontFace)return;
     const face=new FontFace('Kumu Jalnan',`local("Jalnan2"),local("여기어때 잘난체 2"),url("${new URL('assets/fonts/Jalnan2.otf',document.baseURI)}") format("opentype")`,{weight:'400',style:'normal'});
-    face.load().then(loaded=>{
+    return face.load().then(loaded=>{
       document.fonts.add(loaded);
       root.dataset.typeSpecimenFont='jalnan2';
     }).catch(error=>{root.dataset.typeSpecimenFont='fallback';console.warn('Kumu type specimen font:',error);});
@@ -33,18 +33,6 @@
     units.forEach(unit=>observer.observe(unit));
     return ()=>{observer.disconnect();units.forEach(unit=>unit.style.removeProperty('will-change'));};
   }
-  function prepareTypeSpecimen(){
-    const target=document.querySelector('[data-entry="identity-type-left"]');
-    if(!window.IntersectionObserver||!target){loadTypeSpecimen();return;}
-    const observer=new IntersectionObserver(entries=>{
-      if(!entries.some(entry=>entry.isIntersecting))return;
-      observer.disconnect();
-      loadTypeSpecimen();
-    },{rootMargin:'1500px 0px'});
-    observer.observe(target);
-    return ()=>observer.disconnect();
-  }
-  let stopTypeSpecimen;
   function recordState(element,timeline){
     const progress=timeline.progress();
     const state=progress===1?'entered':progress===0?'idle':'entering';
@@ -74,8 +62,8 @@
         queue.push(entry.target);
       }
       schedule();
-    },{rootMargin:'1000px 0px'});
-    main.querySelectorAll('img[loading="lazy"]').forEach(image=>observer.observe(image));
+    },{rootMargin:`${Math.min(4000,innerHeight*4)}px 0px`});
+    main.querySelectorAll('img[loading="lazy"]').forEach(image=>{if(/\.(webp|png|jpe?g)(?:[?#]|$)/i.test(image.getAttribute('src')||''))observer.observe(image);});
     return ()=>{
       stopped=true;
       observer.disconnect();
@@ -100,7 +88,6 @@
   function stopScroll(){
     stopPredecode?.();
     stopNearbyLayers?.();
-    stopTypeSpecimen?.();
     if(updateScroll)window.gsap?.ticker.remove(updateScroll);
     motion.lenis?.off('scroll',window.ScrollTrigger?.update);
     motion.lenis?.destroy();
@@ -174,15 +161,32 @@
     try{
       gsap.registerPlugin(ScrollTrigger);
       ScrollTrigger.config({ignoreMobileResize:true});
-      motion.lenis=new Lenis({smoothWheel:true,lerp:0.08});
+      let wheelDirection=0,nativeWheelUntil=0;
+      motion.lenis=new Lenis({smoothWheel:true,lerp:0.08,respectReducedMotion:false,
+        virtualScroll({deltaX,deltaY,event}){
+          const lenis=motion.lenis;
+          if(event.type!=='wheel'||event.ctrlKey||Math.abs(deltaY)<=Math.abs(deltaX)||lenis.isStopped||lenis.isLocked)return true;
+          const direction=Math.sign(deltaY),now=performance.now();
+          const burstLimit=Math.max(600,innerHeight*.75);
+          if(Math.abs(deltaY)>burstLimit||Math.abs(lenis.targetScroll-lenis.animatedScroll)>burstLimit||now<nativeWheelUntil){
+            if(lenis.isScrolling==='smooth')lenis.scrollTo(lenis.scroll,{immediate:true});
+            nativeWheelUntil=now+160;wheelDirection=direction;
+            return false;
+          }
+          if(wheelDirection&&direction!==wheelDirection&&lenis.isScrolling==='smooth')lenis.scrollTo(lenis.scroll,{immediate:true});
+          wheelDirection=direction;
+          return true;
+        }
+      });
       window.kumuLenis=motion.lenis;
       motion.lenis.on('scroll',ScrollTrigger.update);
       updateScroll=time=>motion.lenis.raf(time*1000);
       gsap.ticker.add(updateScroll);
       gsap.ticker.lagSmoothing(0);
       root.dataset.scrollEngine='lenis';root.dataset.scrollLerp='0.08';
+      const specimenReady=loadTypeSpecimen();
       await document.fonts.ready;
-      await Promise.allSettled([...document.querySelectorAll('.hero-sec img')].map(e=>e.decode()));
+      await Promise.allSettled([specimenReady,...[...document.querySelectorAll('.hero-sec img')].map(e=>e.decode())]);
       // The scroll engine is already running while first-visit media finishes loading.
       root.classList.remove('motion-preparing');
       context=gsap.context(entries,main);
@@ -190,7 +194,6 @@
       ScrollTrigger.refresh();
       stopPredecode=predecodeNearViewport();
       stopNearbyLayers=prepareNearbyLayers();
-      stopTypeSpecimen=prepareTypeSpecimen();
       if(location.hash){const target=document.querySelector(location.hash);if(target)motion.lenis.scrollTo(Number(target.dataset.motionTop??target.offsetTop)*scale(),{immediate:true});}
     }catch(error){fallback(error);}
   }

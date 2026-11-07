@@ -16,7 +16,7 @@ body{overflow-x:hidden}
 .problem-sec h2{letter-spacing:-2.5px}.problem-sec h3{letter-spacing:-1.6px}
 .goal-chevron{position:absolute;left:952px;width:16px;height:14px;background:#fff;clip-path:polygon(0 0,100% 0,50% 100%)}
 .main-sec,.sub-sec{background:#fff}
-.main-site{position:absolute;left:404px;top:262.9px;width:1112px;height:3722px;clip-path:polygon(0 0,100% 0,100% 1310px,1058px 1310px,1058px 1761px,100% 1761px,100% 100%,0 100%,0 2410px,54px 2410px,54px 1959px,0 1959px,0 553px,54px 553px,54px 102px,0 102px)}
+.main-site{position:absolute;left:404px;top:262.9px;width:1112px;height:3722px;}
 .main-phone{position:absolute;width:220px;height:451px}
 .screen-note{position:absolute;white-space:pre-line;font-size:16px;line-height:27px;letter-spacing:-.7px}
 .screen-note h3{font-size:20px;line-height:24px;font-weight:500;margin-top:61px;margin-bottom:12px;display:flex;gap:15px;align-items:baseline}
