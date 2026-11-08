@@ -118,7 +118,7 @@
       elements.forEach((e,index)=>{
         const effect=e.dataset.effect||'fade',hero=name==='hero-opening';
         if(effect==='bar'){setupBar(e,index,name);return;}
-        const delay=index*(hero?.08:name==='strategy-cards'?.3:.18);
+        const delay=name==='strategy-cards'?.35+index*.3:index*(hero?.08:.18);
         const opacity=parseFloat(original.get(e)||'1');
         const tl=gsap.timeline({paused:true,onUpdate(){recordState(e,tl);}});
         if(hero){
