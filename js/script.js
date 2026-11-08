@@ -93,6 +93,15 @@
     motion.lenis?.destroy();
     window.kumuLenis=null;
   }
+  function entryTrigger(element,timeline){
+    return ScrollTrigger.create({
+      // Use a separate exit line so tiny reversals around the entry line cannot flash the content.
+      start:()=>position(element)-innerHeight,
+      end:()=>entryStart(element),
+      onLeave:()=>timeline.play(),
+      onLeaveBack:()=>timeline.pause(0,false)
+    });
+  }
   function setupBar(e,index,name){
     const fill=e.querySelector('.research-bar-fill'),number=e.querySelector('.research-bar-count');
     const description=e.querySelector('[data-bar-description]');
@@ -105,9 +114,9 @@
     };
     draw();
     const tl=gsap.timeline({paused:true,onUpdate(){recordState(e,tl);}});
-    tl.to(value,{progress:1,duration:1,ease:'power1.inOut',onUpdate:draw},index*.18);
-    tl.fromTo(description,{opacity:0},{opacity:1,duration:1,ease:'sine.inOut'},index*.18);
-    const trigger=ScrollTrigger.create({animation:tl,start:()=>entryStart(e),once:true,toggleActions:'play none none none'});
+    tl.to(value,{progress:1,duration:.8,ease:'power1.inOut',onUpdate:draw},index*.15);
+    tl.fromTo(description,{opacity:0},{opacity:1,duration:.8,ease:'sine.inOut'},index*.15);
+    const trigger=entryTrigger(e,tl);
     motion.groups.push({name,units:[e],timeline:tl,trigger});
   }
   function entries(){
@@ -118,17 +127,17 @@
       elements.forEach((e,index)=>{
         const effect=e.dataset.effect||'fade',hero=name==='hero-opening';
         if(effect==='bar'){setupBar(e,index,name);return;}
-        const delay=name==='strategy-cards'?.35+index*.3:index*(hero?.08:.18);
+        const delay=name==='strategy-cards'?.35+index*.21:index*(hero?.08:.15);
         const opacity=parseFloat(original.get(e)||'1');
         const tl=gsap.timeline({paused:true,onUpdate(){recordState(e,tl);}});
         if(hero){
           const y=e.dataset.entry==='hero-photo'?100:e.dataset.entry==='hero-project-title'?-100:0;
           tl.fromTo(e,{opacity:0,y},{opacity,y:0,duration:.8,ease:'power1.out'},delay);
         }else if(effect==='popin'){
-          tl.fromTo(e,{scale:.75,opacity:0},{scale:1,opacity,duration:.75,ease:'power1.out'},delay)
-            .to(e,{scale:1.04,duration:.2,ease:'sine.inOut'}).to(e,{scale:1,duration:.2,ease:'sine.inOut'});
+          tl.fromTo(e,{scale:.75,opacity:0},{scale:1,opacity,duration:.575,ease:'power1.out'},delay)
+            .to(e,{scale:1.04,duration:.175,ease:'sine.inOut'}).to(e,{scale:1,duration:.175,ease:'sine.inOut'});
         }else{
-          const from={opacity:0},to={opacity,duration:effect==='fadeUp'?1.1:1,ease:effect==='fade'?'sine.inOut':'power1.out'};
+          const from={opacity:0},to={opacity,duration:effect==='fadeUp'?.85:.8,ease:effect==='fade'?'sine.inOut':'power1.out'};
           if(effect==='fadeUp'){from.y=100;to.y=0;}
           if(effect==='slideLeft'||effect==='slideRight'){from.xPercent=effect==='slideLeft'?-25:25;to.xPercent=0;}
           tl.fromTo(e,from,to,delay);
@@ -137,9 +146,7 @@
         if(hero){if(window.kumuPreparationExpired)tl.progress(1);else tl.play();}
         else{
           // Recorded source coordinates avoid laying out every masked offscreen section.
-          const triggerElement=e;
-          trigger=ScrollTrigger.create({animation:tl,start:()=>entryStart(triggerElement),
-            once:true,toggleActions:'play none none none'});
+          trigger=entryTrigger(e,tl);
         }
         motion.groups.push({name,units:[e],timeline:tl,trigger});
       });
@@ -153,13 +160,13 @@
     };
     draw();number.textContent='0%';
     const pie=gsap.timeline({paused:true});
-    pie.to(progress,{value:1,duration:1.3,ease:'sine.inOut',onUpdate:draw},0);
+    pie.to(progress,{value:1,duration:1.1,ease:'sine.inOut',onUpdate:draw},0);
     // Show white copy after the brown sector reaches its location, then count at a readable pace.
-    pie.fromTo(caption,{opacity:0},{opacity:1,duration:.4,ease:'sine.inOut'},.9);
-    pie.to(count,{value:82,duration:.85,ease:'power1.out',onUpdate(){
+    pie.fromTo(caption,{opacity:0},{opacity:1,duration:.3,ease:'sine.inOut'},.76);
+    pie.to(count,{value:82,duration:.725,ease:'power1.out',onUpdate(){
       const text=Math.round(count.value)+'%';if(number.textContent!==text)number.textContent=text;
-    }},.9);
-    const trigger=ScrollTrigger.create({animation:pie,start:()=>entryStart(figure),once:true,toggleActions:'play none none none'});
+    }},.76);
+    const trigger=entryTrigger(figure,pie);
     motion.groups.push({name:'research-pie-fill',units:[figure],timeline:pie,trigger});
   }
   async function init(){
