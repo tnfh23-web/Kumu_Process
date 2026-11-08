@@ -161,23 +161,7 @@
     try{
       gsap.registerPlugin(ScrollTrigger);
       ScrollTrigger.config({ignoreMobileResize:true});
-      let wheelDirection=0,nativeWheelUntil=0;
-      motion.lenis=new Lenis({smoothWheel:true,lerp:0.08,respectReducedMotion:false,
-        virtualScroll({deltaX,deltaY,event}){
-          const lenis=motion.lenis;
-          if(event.type!=='wheel'||event.ctrlKey||Math.abs(deltaY)<=Math.abs(deltaX)||lenis.isStopped||lenis.isLocked)return true;
-          const direction=Math.sign(deltaY),now=performance.now();
-          const burstLimit=Math.max(600,innerHeight*.75);
-          if(Math.abs(deltaY)>burstLimit||Math.abs(lenis.targetScroll-lenis.animatedScroll)>burstLimit||now<nativeWheelUntil){
-            if(lenis.isScrolling==='smooth')lenis.scrollTo(lenis.scroll,{immediate:true});
-            nativeWheelUntil=now+160;wheelDirection=direction;
-            return false;
-          }
-          if(wheelDirection&&direction!==wheelDirection&&lenis.isScrolling==='smooth')lenis.scrollTo(lenis.scroll,{immediate:true});
-          wheelDirection=direction;
-          return true;
-        }
-      });
+      motion.lenis=new Lenis({smoothWheel:true,lerp:0.08,respectReducedMotion:false});
       window.kumuLenis=motion.lenis;
       motion.lenis.on('scroll',ScrollTrigger.update);
       updateScroll=time=>motion.lenis.raf(time*1000);
