@@ -114,8 +114,8 @@
     };
     draw();
     const tl=gsap.timeline({paused:true,onUpdate(){recordState(e,tl);}});
-    tl.to(value,{progress:1,duration:.8,ease:'power1.inOut',onUpdate:draw},index*.15);
-    tl.fromTo(description,{opacity:0},{opacity:1,duration:.8,ease:'sine.inOut'},index*.15);
+    tl.to(value,{progress:1,duration:.6,ease:'power1.inOut',onUpdate:draw},index*.15);
+    tl.fromTo(description,{opacity:0},{opacity:1,duration:.6,ease:'sine.inOut'},index*.15);
     const trigger=entryTrigger(e,tl);
     motion.groups.push({name,units:[e],timeline:tl,trigger});
   }
@@ -134,10 +134,10 @@
           const y=e.dataset.entry==='hero-photo'?100:e.dataset.entry==='hero-project-title'?-100:0;
           tl.fromTo(e,{opacity:0,y},{opacity,y:0,duration:.8,ease:'power1.out'},delay);
         }else if(effect==='popin'){
-          tl.fromTo(e,{scale:.75,opacity:0},{scale:1,opacity,duration:.575,ease:'power1.out'},delay)
-            .to(e,{scale:1.04,duration:.175,ease:'sine.inOut'}).to(e,{scale:1,duration:.175,ease:'sine.inOut'});
+          tl.fromTo(e,{scale:.75,opacity:0},{scale:1,opacity,duration:.4,ease:'power1.out'},delay)
+            .to(e,{scale:1.04,duration:.15,ease:'sine.inOut'}).to(e,{scale:1,duration:.15,ease:'sine.inOut'});
         }else{
-          const from={opacity:0},to={opacity,duration:effect==='fadeUp'?.85:.8,ease:effect==='fade'?'sine.inOut':'power1.out'};
+          const from={opacity:0},to={opacity,duration:.6,ease:effect==='fade'?'sine.inOut':'power1.out'};
           if(effect==='fadeUp'){from.y=100;to.y=0;}
           if(effect==='slideLeft'||effect==='slideRight'){from.xPercent=effect==='slideLeft'?-25:25;to.xPercent=0;}
           tl.fromTo(e,from,to,delay);
@@ -160,12 +160,12 @@
     };
     draw();number.textContent='0%';
     const pie=gsap.timeline({paused:true});
-    pie.to(progress,{value:1,duration:1.1,ease:'sine.inOut',onUpdate:draw},0);
+    pie.to(progress,{value:1,duration:.8,ease:'sine.inOut',onUpdate:draw},0);
     // Show white copy after the brown sector reaches its location, then count at a readable pace.
-    pie.fromTo(caption,{opacity:0},{opacity:1,duration:.3,ease:'sine.inOut'},.76);
-    pie.to(count,{value:82,duration:.725,ease:'power1.out',onUpdate(){
+    pie.fromTo(caption,{opacity:0},{opacity:1,duration:.25,ease:'sine.inOut'},.55);
+    pie.to(count,{value:82,duration:.6,ease:'power1.out',onUpdate(){
       const text=Math.round(count.value)+'%';if(number.textContent!==text)number.textContent=text;
-    }},.76);
+    }},.55);
     const trigger=entryTrigger(figure,pie);
     motion.groups.push({name:'research-pie-fill',units:[figure],timeline:pie,trigger});
   }
