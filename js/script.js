@@ -22,6 +22,7 @@
   const scale=()=>parseFloat(root.style.getPropertyValue('--canvas-scale'))||1;
   const position=e=>Number(e.dataset.motionTop)*scale();
   const height=e=>Math.min(Number(e.dataset.motionHeight),650)*scale();
+  const entryStart=e=>position(e)-innerHeight+Math.min(180,innerHeight*.18);
   let context,updateScroll,stopPredecode,stopNearbyLayers;
   function prepareNearbyLayers(){
     if(!window.IntersectionObserver)return;
@@ -97,7 +98,6 @@
     const fill=e.querySelector('.research-bar-fill'),number=e.querySelector('.research-bar-count');
     const description=e.querySelector('[data-bar-description]');
     const target=Number(e.dataset.barTarget),value={progress:0};
-    const question=document.querySelector('[data-entry="research-question-left"]');
     const draw=()=>{
       fill.style.width=(value.progress*100)+'%';
       const text=Math.round(target*value.progress)+'%';
@@ -108,7 +108,7 @@
     const tl=gsap.timeline({paused:true,onUpdate(){recordState(e,tl);}});
     tl.to(value,{progress:1,duration:.6,ease:'power1.out',onUpdate:draw},index*.12);
     tl.fromTo(description,{opacity:0},{opacity:1,duration:.6,ease:'none'},index*.12);
-    const trigger=ScrollTrigger.create({animation:tl,start:()=>position(question)-innerHeight*.5,toggleActions:'play none none reverse'});
+    const trigger=ScrollTrigger.create({animation:tl,start:()=>entryStart(e),toggleActions:'play none none reverse'});
     motion.groups.push({name,units:[e],timeline:tl,trigger});
   }
   function entries(){
@@ -140,8 +140,8 @@
         if(hero){if(window.kumuPreparationExpired)tl.progress(1);else tl.play();}
         else{
           // Recorded source coordinates avoid laying out every masked offscreen section.
-          const triggerElement=plain?elements[0]:e;
-          trigger=ScrollTrigger.create({animation:tl,start:()=>position(triggerElement)-innerHeight,
+          const triggerElement=e;
+          trigger=ScrollTrigger.create({animation:tl,start:()=>entryStart(triggerElement),
             end:()=>position(triggerElement)+height(triggerElement)-innerHeight*.75,
             scrub: scrub ? 0.25 : false,toggleActions:'play none none reverse'});
         }
@@ -149,13 +149,12 @@
       });
     });
     const figure=document.querySelector('.research-pie'),sweep=figure.querySelector('.pie-sweep');
-    const question=document.querySelector('[data-entry="research-question-left"]');
     const progress={value:0},caption=figure.querySelector('figcaption');
     const draw=()=>{sweep.setAttribute('stroke-dashoffset',String(1-progress.value*.82));figure.dataset.pieProgress=(progress.value*82).toFixed(2);caption.style.opacity=Math.max(0,Math.min(1,(progress.value-.72)/.12));};
     draw();
-    gsap.to(progress,{value:1,ease:'none',onUpdate:draw,scrollTrigger:{start:()=>position(question)-innerHeight*.5,end:()=>position(question)-innerHeight*.2,scrub:.25}});
+    gsap.to(progress,{value:1,ease:'none',onUpdate:draw,scrollTrigger:{start:()=>entryStart(figure),end:()=>entryStart(figure)+innerHeight*.3,scrub:.25}});
     const count={value:0},number=figure.querySelector('.pie-number');
-    gsap.to(count,{value:82,duration:.6,ease:'none',onUpdate(){const text=Math.round(count.value)+'%';if(number.textContent!==text)number.textContent=text;},scrollTrigger:{start:()=>position(question)-innerHeight*.5,toggleActions:'play none none reverse'}});
+    gsap.to(count,{value:82,duration:.6,ease:'none',onUpdate(){const text=Math.round(count.value)+'%';if(number.textContent!==text)number.textContent=text;},scrollTrigger:{start:()=>entryStart(figure),toggleActions:'play none none reverse'}});
   }
   async function init(){
     try{
