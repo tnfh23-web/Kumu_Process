@@ -1,22 +1,29 @@
-# Lenis와 빠른 잇고 기준 인터랙션
+# 고정 시간 순차 등장과 Lenis
 
-사용자 정정에 따라 스크롤은 Lenis 1.3.27 하나로 구동한다. GSAP/ScrollTrigger는 3.13.0이다. Lenis 설정은 `new Lenis({smoothWheel:true, lerp:0.08})`, `lenis.on('scroll', ScrollTrigger.update)`, GSAP ticker의 `lenis.raf(time*1000)`, `gsap.ticker.lagSmoothing(0)`이다. autoRaf와 별도 RAF는 사용하지 않는다. 해제 시 자신의 ticker callback 제거, scroll 이벤트 해제, lenis.destroy를 수행한다. 전체 문서가 transform되는 wrapper는 없다.
+스크롤은 Lenis 1.3.27 하나로 구동한다. GSAP/ScrollTrigger는 3.13.0이다. `new Lenis({smoothWheel:true, lerp:0.08})`, `scroll→ScrollTrigger.update`, GSAP ticker 하나의 `lenis.raf(time*1000)`, `lagSmoothing(0)`을 유지한다. 입력을 가공하거나 스크롤 엔진을 추가하지 않는다.
 
-레퍼런스: https://r00neyj.github.io/Eatgo_Process/ 의 .6초 fadeUp과 순차 등장. 사용자 요청에 따라 차트 완성을 빠르게 하고 스크롤 보간과 scrub 지연이 겹쳐 느려지는 부분을 줄였다. 로고 조각별 blur/scale과 curtain은 적용하지 않는다.
+잇고를 참고한 구성 전체의 fade/fadeUp/popin/좌우 slide를 유지하되, 최신 사용자 요청(2026-11-09)에 따라 **모든 등장을 스크롤 진행률에서 분리**했다. 진입 후 멈추거나 빠르게 스크롤해도 동일한 duration으로 끝까지 재생한다. `once:true`, `toggleActions:'play none none none'`이며 역스크롤로 다시 숨거나 카운트가 초기화되지 않는다.
 
-| 구성 | 동작 |
+| 구성 | 고정 시간 동작 |
 |---|---|
-| Hero | 사진 y100→0, 설명 y-100→0, .8초 power1.out. 정보·툴·워드마크는 완성된 구성으로 순차 fade |
-| label / 원형 전략 카드 | popin scale .75→1(.4초)→1.04(.15초)→1(.15초), scrub .25 |
-| 제목·본문·질문·서체 | 전체 opacity 0→1, scrub .25 |
-| 문제 카드·기기 목업·화면·적용 사진·Flow | 전체 y100→0·opacity 0→1, .6초 power1.out, 행 간격 .12초 |
-| 화면 annotation | 좌/우 폭의 ±25%→0·opacity 0→1, scrub .25 |
-| Tool·로고·팔레트 | 테두리·도형·문구를 완성된 구성으로 .6초 fade. 같은 행은 .12초 간격, 왼쪽부터 |
-| 리서치 막대 | 막대 각 행이 하단 18%(최대 180px) 안쪽 진입 후 왼쪽 고정 width 0→원본 길이와 0→37/28/21/14% 카운트를 같은 progress로 .6초에 완성. 행 간격 .12초. 숫자는 끝을 따라가고 설명은 제자리 fade |
-| 원그래프 | 같은 중심·반지름 140의 native SVG 원/82% 부채꼴. 차트 자체가 하단 18%(최대 180px) 안쪽 진입한 뒤 30vh 스크롤로 시계 방향 채움(scrub .25), 숫자는 .6초 counter. 빈 곳에 흰 문구가 걸리지 않게 채워진 뒤 caption fade |
-| 전략 카드 hover | scroll scale과 별개로 translate y -9.6px, .3초 |
+| Hero | 기존 사진 y100→0, 설명 y-100→0, .8초 power1.out, .08초 간격 유지 |
+| label / 원형 전략 카드 | popin scale .75→1(.75초 power1.out)→1.04(.2초)→1(.2초 sine.inOut). 전략 카드 3개는 좌→우 .3초 간격 |
+| 제목·본문·질문·서체·Tool·로고·팔레트 | 완성된 구성 전체 opacity 0→1, 1초 sine.inOut. 같은 그룹 .18초 간격 |
+| 문제 카드·기기 목업·화면·적용 사진·Flow | 전체 y100→0·opacity 0→1, 1.1초 power1.out, 그룹 간격 .18초 |
+| 화면 annotation | 좌/우 폭의 ±25%→0·opacity 0→1, 1초 power1.out. 한 번 완성 후 유지 |
+| 리서치 막대 | 각 행의 진입 후 width와 카운트를 같은 progress로 1초 power1.inOut에 완성. 설명은 1초 fade, 행 간격 .18초 |
+| 원그래프 | 동일한 SVG 중심·반지름·82% 부채꼴을 유지. 시계 방향 채움 1.3초 sine.inOut. .9초부터 caption .4초 fade와 숫자 .85초 카운트, 전체 약 1.75초에 완성 |
+| 전략 카드 hover | 등장 scale과 별개로 translate y -9.6px, .3초 유지 |
 
-일반 트리거는 각 항목의 top bottom-최소(180px,18vh)→bottom 75%, toggleActions play none none reverse다. 긴 화면은 첫 650px에서 등장을 완성한다. 역방향에는 효과가 복귀하고, 앵커/키보드 탐색 시 대상 구성을 완성해 접근을 보장한다. 5초 visibility failsafe 후에도 늦게 준비된 모션이 시작되며 늦은 첫 화면은 완성 상태로 유지한다. 실패 시 기본 스크롤·완성 차트·본문이 남는다.
+각 항목의 최종 배치 top이 화면 하단에서 `Math.min(180, innerHeight*.18)`px 안으로 들어온 뒤 시작한다. 첫 항목 때문에 화면 아래 항목을 미리 재생하지 않는다. 원본 좌표로 시작점만 계산하고 런타임의 반복 bounds 측정은 추가하지 않는다. 앵커/키보드 탐색은 해당 섹션의 등장·차트 타임라인을 즉시 완성한다. 준비 실패/늦은 첫 화면의 안전한 읽기 경로는 유지한다.
+
+## 고정 시간 등장 검수 (2026-11-09)
+
+인앱 브라우저 1920×1080 및 최소 PC 폭 1280×900에서 확인했다. 원그래프는 0% 초기 상태 → 스크롤 정지 중 23.36%/중간 채움 → 82% 최종 상태를 확인했다. 같은 scrollY에서 채움이 약 1.3초, 후속 숫자가 전체 약 1.75초에 완성됐다. 위로 되돌려도 82%와 caption이 유지됐다.
+
+전략 제목은 레이블→본문 순서로 각각 자기 진입선 이후 재생됐다. 원형 카드 초기 opacity는 모두 0, 진행 중 .856/.392/0으로 좌→우 차이가 보였고 최종 opacity/scale은 모두 1이었다. 실측 카드 시작 간격은 약 300ms였으며 큰 휠 입력에서도 299/302ms로 유지됐다. 전체 popin은 1.15초이고, opacity가 거의 완성되는 시점은 약 .66~.71초였다. 카페 사진은 정지 상태에서 약 1.02초, CLASS 설명은 약 .91초에 opacity .995 이상이 됐고 이후 되돌려도 entered 상태를 유지했다.
+
+실제 큰 휠 입력으로 전체 페이지를 통과한 뒤 역스크롤했을 때 102개 구성 모두 entered였고 opacity 0으로 남은 항목이 없었다. 두 검사 폭 모두 앱 console error/warn가 없었다. 임시 진입 버튼/DOM 샘플러는 로컬 QA 서버에서만 주입했고 배포 소스에는 포함하지 않는다. 최종 정적 배치·원본 자산·Lenis 감도는 변경하지 않았다. 특정 Windows 인앱 브라우저의 검사이며 모든 기기의 무지연을 뜻하지 않는다.
 
 ## 목업 렌더링
 
@@ -24,7 +31,7 @@
 
 ## 첫 방문과 새로고침
 
-Lenis는 폰트·히어로 decode를 기다리기 전에 시작한다. 이미지 디코드는 화면 높이 4배(최대 4000px) 근처에서 idle에 한 장씩 처리하며 WebP·PNG·JPEG만 수동 큐에 포함한다. 500px 안의 구성만 합성 레이어를 준비하고 벗어나면 해제한다. wrapper는 paint 경계를 제한한다. 잘난체는 첫 모션 설정 전에 준비해 중간 스크롤 중 글꼴 교체를 피한다. 고정 tween은 resize refresh 때 invalidate하지 않는다. 모든 이미지에 async decode를 명시한다. 모션의 시간·배치·이미지 치수는 유지한다.
+Lenis는 폰트·히어로 decode를 기다리기 전에 시작한다. 이미지 디코드는 화면 높이 4배(최대 4000px) 근처에서 idle에 한 장씩 처리하며 WebP·PNG·JPEG만 수동 큐에 포함한다. 500px 안의 구성만 합성 레이어를 준비하고 벗어나면 해제한다. wrapper는 paint 경계를 제한한다. 잘난체는 첫 모션 설정 전에 준비해 중간 스크롤 중 글꼴 교체를 피한다. 고정 tween은 resize refresh 때 invalidate하지 않는다. 모든 이미지에 async decode를 명시한다. 배치·이미지 치수와 기존 렌더링 최적화는 유지하고 등장 시간만 위 표의 최신 값으로 조정한다.
 
 1920×1080 인앱 브라우저에서 로컬 자산 URL을 새로 만들어 첫 방문을 검사하고 같은 URL을 새로고침했다. 각 휠 입력 뒤 1.6초 RAF 표본을 수집하고 화면/AX 수집은 표본 종료 후 수행했다. 2페이지 입력 9회로 전체를 통과했을 때 첫 방문 최대17~19ms, 새로고침 최대17~21ms, 50ms 초과0회였다. 4페이지씩 한 번에 넘기는 별도 입력에서는 83~233ms 단발 프레임도 관측해 모든 입력·기기의 무지연으로 일반화하지 않는다. 외부 CDN의 완전히 비어 있는 캐시는 이 로컬 자산 검사와 구분한다.
 

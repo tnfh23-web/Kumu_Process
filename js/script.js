@@ -21,7 +21,6 @@
   const original=new Map(units.map(e=>[e,e.style.opacity]));
   const scale=()=>parseFloat(root.style.getPropertyValue('--canvas-scale'))||1;
   const position=e=>Number(e.dataset.motionTop)*scale();
-  const height=e=>Math.min(Number(e.dataset.motionHeight),650)*scale();
   const entryStart=e=>position(e)-innerHeight+Math.min(180,innerHeight*.18);
   let context,updateScroll,stopPredecode,stopNearbyLayers;
   function prepareNearbyLayers(){
@@ -106,9 +105,9 @@
     };
     draw();
     const tl=gsap.timeline({paused:true,onUpdate(){recordState(e,tl);}});
-    tl.to(value,{progress:1,duration:.6,ease:'power1.out',onUpdate:draw},index*.12);
-    tl.fromTo(description,{opacity:0},{opacity:1,duration:.6,ease:'none'},index*.12);
-    const trigger=ScrollTrigger.create({animation:tl,start:()=>entryStart(e),toggleActions:'play none none reverse'});
+    tl.to(value,{progress:1,duration:1,ease:'power1.inOut',onUpdate:draw},index*.18);
+    tl.fromTo(description,{opacity:0},{opacity:1,duration:1,ease:'sine.inOut'},index*.18);
+    const trigger=ScrollTrigger.create({animation:tl,start:()=>entryStart(e),once:true,toggleActions:'play none none none'});
     motion.groups.push({name,units:[e],timeline:tl,trigger});
   }
   function entries(){
@@ -119,19 +118,17 @@
       elements.forEach((e,index)=>{
         const effect=e.dataset.effect||'fade',hero=name==='hero-opening';
         if(effect==='bar'){setupBar(e,index,name);return;}
-        const plain=name.startsWith('palette-')||/identity-(primary-logo|logotype|brandmark|submark)|hero-(tools|wordmark)/.test(e.dataset.entry);
-        const scrub=!hero&&!plain&&effect!=='fadeUp';
-        const delay=index*(hero?.08:.12);
+        const delay=index*(hero?.08:name==='strategy-cards'?.3:.18);
         const opacity=parseFloat(original.get(e)||'1');
         const tl=gsap.timeline({paused:true,onUpdate(){recordState(e,tl);}});
         if(hero){
           const y=e.dataset.entry==='hero-photo'?100:e.dataset.entry==='hero-project-title'?-100:0;
           tl.fromTo(e,{opacity:0,y},{opacity,y:0,duration:.8,ease:'power1.out'},delay);
         }else if(effect==='popin'){
-          tl.fromTo(e,{scale:.75,opacity:0},{scale:1,opacity,duration:.4,ease:'none'},delay)
-            .to(e,{scale:1.04,duration:.15,ease:'none'}).to(e,{scale:1,duration:.15,ease:'none'});
+          tl.fromTo(e,{scale:.75,opacity:0},{scale:1,opacity,duration:.75,ease:'power1.out'},delay)
+            .to(e,{scale:1.04,duration:.2,ease:'sine.inOut'}).to(e,{scale:1,duration:.2,ease:'sine.inOut'});
         }else{
-          const from={opacity:0},to={opacity,duration:.6,ease:effect==='fadeUp'?'power1.out':'none'};
+          const from={opacity:0},to={opacity,duration:effect==='fadeUp'?1.1:1,ease:effect==='fade'?'sine.inOut':'power1.out'};
           if(effect==='fadeUp'){from.y=100;to.y=0;}
           if(effect==='slideLeft'||effect==='slideRight'){from.xPercent=effect==='slideLeft'?-25:25;to.xPercent=0;}
           tl.fromTo(e,from,to,delay);
@@ -142,19 +139,28 @@
           // Recorded source coordinates avoid laying out every masked offscreen section.
           const triggerElement=e;
           trigger=ScrollTrigger.create({animation:tl,start:()=>entryStart(triggerElement),
-            end:()=>position(triggerElement)+height(triggerElement)-innerHeight*.75,
-            scrub: scrub ? 0.25 : false,toggleActions:'play none none reverse'});
+            once:true,toggleActions:'play none none none'});
         }
         motion.groups.push({name,units:[e],timeline:tl,trigger});
       });
     });
     const figure=document.querySelector('.research-pie'),sweep=figure.querySelector('.pie-sweep');
     const progress={value:0},caption=figure.querySelector('figcaption');
-    const draw=()=>{sweep.setAttribute('stroke-dashoffset',String(1-progress.value*.82));figure.dataset.pieProgress=(progress.value*82).toFixed(2);caption.style.opacity=Math.max(0,Math.min(1,(progress.value-.72)/.12));};
-    draw();
-    gsap.to(progress,{value:1,ease:'none',onUpdate:draw,scrollTrigger:{start:()=>entryStart(figure),end:()=>entryStart(figure)+innerHeight*.3,scrub:.25}});
     const count={value:0},number=figure.querySelector('.pie-number');
-    gsap.to(count,{value:82,duration:.6,ease:'none',onUpdate(){const text=Math.round(count.value)+'%';if(number.textContent!==text)number.textContent=text;},scrollTrigger:{start:()=>entryStart(figure),toggleActions:'play none none reverse'}});
+    const draw=()=>{
+      sweep.setAttribute('stroke-dashoffset',String(1-progress.value*.82));
+      figure.dataset.pieProgress=(progress.value*82).toFixed(2);
+    };
+    draw();number.textContent='0%';
+    const pie=gsap.timeline({paused:true});
+    pie.to(progress,{value:1,duration:1.3,ease:'sine.inOut',onUpdate:draw},0);
+    // Show white copy after the brown sector reaches its location, then count at a readable pace.
+    pie.fromTo(caption,{opacity:0},{opacity:1,duration:.4,ease:'sine.inOut'},.9);
+    pie.to(count,{value:82,duration:.85,ease:'power1.out',onUpdate(){
+      const text=Math.round(count.value)+'%';if(number.textContent!==text)number.textContent=text;
+    }},.9);
+    const trigger=ScrollTrigger.create({animation:pie,start:()=>entryStart(figure),once:true,toggleActions:'play none none none'});
+    motion.groups.push({name:'research-pie-fill',units:[figure],timeline:pie,trigger});
   }
   async function init(){
     try{
