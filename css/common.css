@@ -22,9 +22,21 @@ body{overflow-x:hidden}
 .screen-note h3{font-size:20px;line-height:24px;font-weight:500;margin-top:61px;margin-bottom:12px;display:flex;gap:15px;align-items:baseline}
 .screen-note h3 span{color:#ad7252;font-weight:600}.screen-note h3 strong{font-weight:600}
 .screen-note.left{text-align:right}.screen-note.left h3{justify-content:flex-end}
-.note-connector{position:absolute;top:0;width:62px;height:18px;background:linear-gradient(90deg,#fff,#ad7252);left:-45px}
-.note-connector::after{content:'';position:absolute;right:-4px;bottom:-7px;width:10px;height:10px;background:#ad7252;border-radius:50%}
-.left .note-connector{left:auto;right:-45px;transform:scaleX(-1)}
+/* Rotate the CLASS connector around its dot so each annotation keeps its original anchor. */
+.note-connector {
+  position: absolute;
+  width: 34px;
+  height: 77px;
+  pointer-events: none;
+  background:
+    url('../assets/icons/de3e3619-cd74-45c5-892f-22a0ff81a8d7.svg') center 55px / 10px 10px no-repeat,
+    url('../assets/images/optimized/masked-f177b71c286d1b.webp') center 43px / 34px 34px no-repeat,
+    url('../assets/images/optimized/masked-7178a78be8c4c3.webp') center top / 2px 57px no-repeat;
+  transform-origin: 17px 60px;
+  transform: rotate(-90deg);
+}
+.screen-note .note-connector { top: -40px; left: -1px; }
+.screen-note.left .note-connector { right: -1px; left: auto; transform: rotate(90deg); }
 .screen-note p{font-size:16px;line-height:27px}
 .strategy-sec [data-name^='Strategy Card ']{box-shadow:0 5px 14px #442e2020;overflow:hidden}
 .js-ready .back-top.is-visible{opacity:1;visibility:visible}

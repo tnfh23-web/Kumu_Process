@@ -10,7 +10,7 @@
 | `css/style.css` | CSS 파일을 순서대로 불러오는 진입점 | lenis → fonts → reset → common → layout → responsive | 스타일 구성 변경 |
 | `css/fonts.css` | 로컬 Pretendard Variable 로딩, 왼쪽 잘난체 샘플 범위와 Aa 기준선 보정 | assets/fonts | 웹 글꼴 변경 |
 | `css/reset.css` | 기본 여백과 요소 규칙, 최소 PC 폭, 키보드 포커스 | 전체 화면 | 브라우저 기본 스타일 문제 수정 |
-| `css/common.css` | PC 캔버스, paint 경계 제한 wrapper/내부 좌표 plane, native document 흐름, SVG 파이, 미리 잘라 둔 메인 화면 이미지, TOP 버튼 스타일 | index.html, js/common.js | 전체 색·공통 요소·원본 보정 변경 |
+| `css/common.css` | PC 캔버스, paint 경계 제한 wrapper/내부 좌표 plane, native document 흐름, SVG 파이, 미리 잘라 둔 메인 화면 이미지, 페이지 설명의 가로 연결선, TOP 버튼 스타일 | index.html, js/common.js | 전체 색·공통 요소·원본 보정 변경 |
 | `css/layout.css` | Figma의 배치·크기·마스크·텍스트 스타일을 변환한 좌표 규칙 | index.html의 g 클래스와 노드 ID | 특정 원본 요소의 위치·비율 변경 |
 | `css/responsive.css` | PC 단일 구성을 명시하고 인쇄 시 스크롤 변형 해제 | 전체 화면 | 인쇄와 표시 정책 변경 |
 | `js/common.js` | PC 캔버스 배율, 앵커·TOP·키보드 탐색, resize 새로 계산 | Lenis, script.js 이벤트 | 탐색·스크롤 이동·크기 계산 변경 |
@@ -39,14 +39,14 @@
 {
   "version": 1,
   "files": {
-    "css/common.css": "aaf43bee0d2a2762243d0b32ac50df5845c66f227ca1c6f99044de1a2e243799",
+    "css/common.css": "b8fd3567c8cc5cc04e6c4442457bbe03659200c501ec0e341c00558f3bdea25a",
     "css/fonts.css": "dd0f49f79748fa491ce2e09ffdf0fa7ab55cb43b25bdd7b581f5f3d631b8254d",
     "css/layout.css": "fc1462089e3e021bfe532af36906586120b1b8c262cc7089f79cf0576b7b9054",
     "css/lenis.css": "2f668ae84a668327f246faf8a770383a2bf69196d214290fbc4d5548910606c5",
     "css/reset.css": "add29fe8aeccee71d2e08ef6bf3552e73c77067b83bee84f837b0785bc923556",
     "css/responsive.css": "4ba755a207c1ca281a0ee7339bcc6482a29dbc3484887432ba571aa17f77a651",
-    "css/style.css": "7b5f230d67f7a62aa8f37d6aadad2a2224a58281f99bdbf6cf442b46aaab99d8",
-    "index.html": "667a83513bd6a8c084746990f7f69ed9d23073f8acbf977fb6e03b4e6089a9d8",
+    "css/style.css": "a1c4efd0d40649531ac373fa02b3c2260e0da6118b534b490378ad506c6f9361",
+    "index.html": "49cb71eeab21871f4d0f6dba4f84114eb83ce7b0d17e2234bc8122d3c28ce759",
     "js/common.js": "944b0c2874d8d0c952420153844487d721b3a34a6d8d563a4a793ca4fcd2c565",
     "js/script.js": "f64d0c9a0148121b130bbf59ec99807540677c13cb1725c5d57fd4f43354f2ca",
     "js/vendor/gsap.min.js": "96c01b81f44a3290e2b4532f55e2c9534b2adc43273a19f3756b2cb41f0fd0b6",
